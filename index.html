@@ -52,6 +52,10 @@ button:disabled{opacity:.45; cursor:not-allowed;}
 #status-pyodide{
   font-size:12.5px; color:var(--muted); display:flex; align-items:center; gap:8px;
 }
+#status-backend{
+  font-size:12.5px; color:var(--muted); cursor:default;
+}
+#status-backend.online{ color:var(--green); }
 .spinner{
   width:13px; height:13px; border-radius:50%;
   border:2px solid var(--border); border-top-color:var(--accent);
@@ -157,6 +161,7 @@ footer a{color:var(--accent); cursor:pointer;}
   <div class="header-right">
     <span id="progresso">Progresso: <b id="progresso-n">0/16</b></span>
     <span id="status-pyodide"><span class="spinner"></span> Carregando ambiente Python...</span>
+    <span id="status-backend" title="Backend opcional (backend/app.py) para salvar seu progresso num banco SQLite real">🗄️ Banco: offline</span>
     <button class="btn-ghost btn-small" id="btn-novidades">🌐 Buscar novidades</button>
   </div>
 </header>
@@ -1513,6 +1518,58 @@ function loadState(){
 function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 let state = loadState();
 
+/* ======================= BANCO DE DADOS (backend opcional) =======================
+   O app funciona sozinho com localStorage. Se você rodar o backend/app.py
+   (Flask + SQLite, veja docs/BANCO_DE_DADOS.md), o progresso passa a ser
+   salvo também num banco de verdade, em progresso.db. */
+const API_BASE = "http://localhost:5000";
+let backendOnline = false;
+
+async function checarBackend(){
+  const status = document.getElementById("status-backend");
+  try{
+    const resp = await fetch(`${API_BASE}/api/health`, {signal: AbortSignal.timeout(1500)});
+    if(!resp.ok) throw new Error("health check falhou");
+    backendOnline = true;
+    status.textContent = "🗄️ Banco: conectado";
+    status.classList.add("online");
+    await carregarDoBackend();
+  }catch(e){
+    backendOnline = false;
+    status.textContent = "🗄️ Banco: offline";
+    status.classList.remove("online");
+  }
+}
+
+async function carregarDoBackend(){
+  try{
+    const resp = await fetch(`${API_BASE}/api/progresso`);
+    const dados = await resp.json();
+    state.completed = dados.completed || [];
+    state.code = {...state.code, ...(dados.code || {})};
+    saveState();
+    renderSidebar();
+  }catch(e){ /* mantém o que já tinha no localStorage */ }
+}
+
+function syncProgressoBackend(exercicioId, concluido, codigo){
+  if(!backendOnline) return;
+  fetch(`${API_BASE}/api/progresso`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({exercicio_id: exercicioId, concluido, codigo})
+  }).catch(() => {});
+}
+
+function registrarTentativaBackend(exercicioId, sucesso, mensagem){
+  if(!backendOnline) return;
+  fetch(`${API_BASE}/api/tentativas`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({exercicio_id: exercicioId, sucesso, mensagem})
+  }).catch(() => {});
+}
+
 /* ======================= PYODIDE ======================= */
 let pyodide = null;
 let pyReady = false;
@@ -1629,6 +1686,7 @@ function selectExercise(id){
   editor.on("change", debounce(() => {
     state.code[id] = editor.getValue();
     saveState();
+    syncProgressoBackend(id, state.completed.includes(id), state.code[id]);
   }, 500));
 
   document.getElementById("btn-restaurar").onclick = () => {
@@ -1776,6 +1834,7 @@ function checkStructural(ex, code){
 
 function handleResultado(ex, resultado){
   const feedback = document.getElementById("feedback");
+  registrarTentativaBackend(ex.id, resultado.ok, resultado.message);
   if(resultado.ok){
     feedback.className = "ok";
     feedback.innerHTML = `<b>✅ ${escapeHtml(resultado.message)}</b>`;
@@ -1784,6 +1843,7 @@ function handleResultado(ex, resultado){
       saveState();
       renderSidebar();
     }
+    syncProgressoBackend(ex.id, true, state.code[ex.id] ?? editor.getValue());
     mostrarOtimizado(ex);
   }else{
     feedback.className = "fail";
@@ -1857,6 +1917,7 @@ document.getElementById("btn-reset").onclick = () => {
 
 renderSidebar();
 initPyodide();
+checarBackend();
 </script>
 </body>
 </html>

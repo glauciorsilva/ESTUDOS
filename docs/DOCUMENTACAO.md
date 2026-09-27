@@ -97,37 +97,76 @@ Essa lógica está em `errorHint()`, dentro do `<script>` do `index.html`. Para 
 
 ## 6. Persistência do progresso (estado atual)
 
-Hoje o progresso (quais exercícios foram concluídos + o código que você escreveu em cada um) é salvo em `localStorage`, sob a chave `praticapython_progress_v1`, como um JSON:
+O progresso (quais exercícios foram concluídos + o código que você escreveu em cada um) é salvo em dois lugares, em camadas:
 
-```json
-{
-  "completed": ["estoque_total", "analise_vendas_df", ...],
-  "code": { "estoque_total": "produtos = [...]" }
-}
+1. **`localStorage`** (sempre ativo, não precisa de nada rodando), sob a chave `praticapython_progress_v1`, como um JSON:
+   ```json
+   {
+     "completed": ["estoque_total", "analise_vendas_df", ...],
+     "code": { "estoque_total": "produtos = [...]" }
+   }
+   ```
+2. **Banco SQLite real** (`backend/progresso.db`), quando o backend opcional está rodando — ver seção 7.
+
+O app sempre funciona só com `localStorage`. O banco é uma camada extra: quando o backend está no ar, o app carrega o estado dele na abertura (`carregarDoBackend()`) e sincroniza a cada mudança (`syncProgressoBackend()`, `registrarTentativaBackend()`); quando não está, cai de volta para `localStorage` silenciosamente (mesmo padrão de degradação graciosa usado no "Buscar novidades").
+
+## 7. Banco de dados (implementado)
+
+O backend fica em `backend/` e é um servidor Flask mínimo com SQLite. Para rodar:
+
+```bash
+cd backend
+pip install -r requirements.txt
+python app.py
 ```
 
-**Limitações dessa abordagem:**
-- Fica preso a um navegador específico, numa máquina específica
-- Se o usuário limpar dados de navegação, o progresso some
-- Não dá para consultar/analisar seu histórico de tentativas (ex: "quantas vezes errei antes de acertar")
-- Não é literalmente "um banco de dados" — é um blob JSON
+Sobe em `http://localhost:5000`. Recomenda-se usar um ambiente virtual (`python -m venv venv`) antes do `pip install`, para não misturar essas dependências com outros projetos Python da sua máquina.
 
-Para evoluir isso para um banco de dados de verdade, veja a seção 7.
+### Schema (`backend/schema.sql`)
 
-## 7. Evoluindo para um banco de dados real
+```sql
+CREATE TABLE progresso (
+    exercicio_id   TEXT PRIMARY KEY,
+    concluido      INTEGER NOT NULL DEFAULT 0,
+    codigo         TEXT,
+    atualizado_em  TEXT NOT NULL
+);
 
-Existem três caminhos, dependendo do que você quer resolver. Nenhum deles está implementado ainda — são as opções recomendadas para o próximo passo do projeto.
+CREATE TABLE tentativas (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    exercicio_id  TEXT NOT NULL,
+    sucesso       INTEGER NOT NULL,
+    mensagem      TEXT,
+    criado_em     TEXT NOT NULL
+);
+```
 
-### Opção A — Banco local simples, sem servidor (SQLite em arquivo, via script auxiliar)
-Um script Python separado (fora do navegador) lê o JSON exportado do `localStorage` e grava num arquivo `.db` SQLite local. Simples, mas manual (sem sincronização automática).
+`progresso` guarda o estado atual (uma linha por exercício, substituída via `UPSERT`). `tentativas` guarda o **histórico** — uma linha por vez que você clica em "Verificar solução", com sucesso ou fracasso — o que resolve a limitação que existia antes de não dar pra analisar o histórico de tentativas.
 
-### Opção B — Backend mínimo (Flask/FastAPI + SQLite) — recomendado para aprendizado
-Sobe um servidor local (`python app.py`) com um banco SQLite real em disco (`progresso.db`). O `index.html` passa a fazer `fetch()` para esse backend em vez de usar só `localStorage`. Essa é a opção mais alinhada com o objetivo de "aprender banco de dados do iniciante ao profissional", porque pratica: schema de banco, API REST simples, e separação frontend/backend — habilidades reais de cientista/engenheiro de dados.
+### Endpoints (`backend/app.py`)
 
-### Opção C — Banco na nuvem (Supabase/Postgres, Firebase, etc.)
-Permite sincronizar progresso entre dispositivos. Mais complexo (autenticação, variáveis de ambiente, deploy), mas é o caminho profissional se a ideia é o projeto virar algo acessível de qualquer lugar.
+| Método | Rota | O que faz |
+|---|---|---|
+| GET | `/api/health` | checagem simples, usada pelo front pra saber se o backend está no ar |
+| GET | `/api/progresso` | devolve `{completed, code}` no mesmo formato do `localStorage` |
+| POST | `/api/progresso` | upsert de um exercício (`exercicio_id`, `concluido`, `codigo`) |
+| POST | `/api/tentativas` | registra uma tentativa (`exercicio_id`, `sucesso`, `mensagem`) |
+| GET | `/api/tentativas` | lista o histórico (filtra por `?exercicio_id=` opcional) |
+| GET | `/api/stats` | agrega tentativas/acertos por exercício (`GROUP BY`) |
 
-> Antes de implementar qualquer uma dessas opções, é importante confirmar **para que exatamente** o banco vai servir (ver conversa/próximos passos do projeto) — o desenho do schema muda dependendo do objetivo.
+### Onde isso entra no front-end
+
+No `index.html`, o bloco `BANCO DE DADOS (backend opcional)` (perto da definição de `state`) implementa: `checarBackend()` (chamada no boot, faz o health-check e já carrega o estado salvo), `syncProgressoBackend()` (chamada a cada edição de código e ao concluir um exercício) e `registrarTentativaBackend()` (chamada em toda tentativa, certa ou errada). O indicador **"🗄️ Banco"** no cabeçalho reflete esse estado em tempo real.
+
+### Praticando SQL no seu próprio histórico
+
+Como o `schema.sql` fica de verdade em disco, dá pra abrir `backend/progresso.db` com qualquer cliente SQLite (ex: `sqlite3 progresso.db`, DB Browser for SQLite, ou a extensão SQLite do VS Code) e escrever consultas sobre os *seus próprios dados de estudo* — por exemplo, quais exercícios você mais errou antes de acertar (exemplos comentados no fim do `schema.sql`).
+
+### Limitações e próximos passos
+
+- O backend precisa estar **rodando localmente** para a sincronização funcionar — não existe hoje uma versão hospedada dele.
+- Isso **não funciona** se o `index.html` for publicado num host estático (Vercel, GitHub Pages) sem o backend rodando em algum lugar acessível — nesse caso, o app cai para `localStorage` normalmente, só sem sincronizar entre dispositivos.
+- Evolução natural (não implementada): hospedar o backend em um serviço com banco gerenciado (ex: Render/Railway + Postgres, ou Supabase) para que a sincronização funcione também com o app publicado. Antes de fazer isso, vale decidir se autenticação de usuário é necessária (hoje o backend não distingue usuários — assume uso individual).
 
 ## 8. Convenções de commit (sugestão)
 

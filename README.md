@@ -30,11 +30,27 @@ Dê duplo-clique nele (ou arraste para o Chrome/Edge). Na primeira execução, a
 - Ao acertar: mostra uma versão mais enxuta/idiomática do código, com a explicação de cada melhoria
 - Progresso salvo automaticamente no navegador (`localStorage`)
 - **Buscar novidades**: busca ao vivo na PyPI as versões mais recentes de pandas/numpy/scikit-learn
+- **Banco de dados real (opcional)**: rodando o backend em `backend/`, o app passa a salvar progresso e histórico de tentativas num SQLite de verdade, além do navegador
+
+## Banco de dados (opcional)
+
+O app funciona sozinho, só com o navegador. Se você quiser persistir seu progresso e seu histórico de tentativas num **banco de dados de verdade** (não só no `localStorage`), suba o backend incluído:
+
+```bash
+cd backend
+pip install -r requirements.txt
+python app.py
+```
+
+Isso sobe um servidor Flask em `http://localhost:5000` com um banco SQLite (`backend/progresso.db`). Com o backend rodando, abra (ou recarregue) o `index.html` — o indicador **"🗄️ Banco"** no cabeçalho muda para "conectado" e passa a sincronizar automaticamente. Sem o backend rodando, o app continua funcionando normalmente, só com `localStorage`.
+
+Detalhes do schema, endpoints e consultas SQL de exemplo (inclusive sobre seu próprio histórico de tentativas) em [`docs/DOCUMENTACAO.md`](docs/DOCUMENTACAO.md#7-banco-de-dados-implementado).
 
 ## Limitações conhecidas
 
 - Os exercícios de **Tkinter não abrem uma janela real** — o navegador não executa GUIs nativas. A correção neles é estrutural (verifica se o código tem os elementos certos). Para ver a janela de verdade, copie o código e rode localmente com `python arquivo.py`.
-- O progresso é salvo por navegador/máquina (não sincroniza entre dispositivos). Veja [`docs/DOCUMENTACAO.md`](docs/DOCUMENTACAO.md) para as opções de persistir isso de forma mais robusta.
+- O progresso só sincroniza com o banco enquanto o backend local (`backend/app.py`) estiver rodando na mesma máquina. Ele não funciona num deploy estático (ex: Vercel) — veja a nota abaixo.
+- Se você publicar este app num host estático (Vercel, GitHub Pages, Netlify), **só o `index.html` funciona lá** (os exercícios em si, 100% client-side). O backend/banco de dados precisa continuar rodando local na sua máquina, ou ser adaptado para um serviço com banco persistente (fora do escopo deste projeto por enquanto).
 
 ## Estrutura do projeto
 
@@ -43,6 +59,10 @@ Dê duplo-clique nele (ou arraste para o Chrome/Edge). Na primeira execução, a
 ├── index.html              # app completo (UI + engine + conteúdo dos exercícios)
 ├── README.md                # este arquivo
 ├── .gitignore
+├── backend/                 # opcional: API + banco SQLite para persistir progresso
+│   ├── app.py
+│   ├── schema.sql
+│   └── requirements.txt
 └── docs/
     └── DOCUMENTACAO.md       # arquitetura, como adicionar exercícios, decisões técnicas
 ```
@@ -60,9 +80,10 @@ Dê duplo-clique nele (ou arraste para o Chrome/Edge). Na primeira execução, a
 
 ## Roadmap
 
-- [ ] Persistência de progresso em banco de dados (ver [`docs/DOCUMENTACAO.md`](docs/DOCUMENTACAO.md))
+- [x] Persistência de progresso em banco de dados real (backend Flask + SQLite, ver acima e [`docs/DOCUMENTACAO.md`](docs/DOCUMENTACAO.md#7-banco-de-dados-implementado))
 - [ ] Mais exercícios (ex: APIs, visualização com matplotlib)
 - [ ] Exportar relatório de progresso em PDF/CSV
+- [ ] Deploy do frontend em produção (Vercel) — pendente autorização da integração GitHub↔Vercel na conta do usuário
 
 ## Licença
 
