@@ -1,0 +1,16 @@
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
+
+# Futuro backend (Opção B da documentação)
+__pycache__/
+*.pyc
+.env
+*.db
+*.sqlite3
+venv/
+.venv/
