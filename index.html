@@ -1,0 +1,1862 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prática Python para Dados — do Iniciante ao Profissional</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<style>
+:root{
+  --bg:#0f1420; --bg2:#161d2e; --panel:#1b2436; --border:#2b3650;
+  --text:#e7ecf5; --muted:#93a0bd; --accent:#5b8dff; --accent2:#7c5bff;
+  --green:#22c55e; --blue:#3b82f6; --purple:#a855f7; --orange:#f97316;
+  --red:#ef4444; --console-bg:#0a0e17;
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#f4f6fb; --bg2:#ffffff; --panel:#ffffff; --border:#dde3ef;
+    --text:#1a2233; --muted:#5b6785; --console-bg:#131a29;
+  }
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+  background:var(--bg); color:var(--text);
+  display:flex; flex-direction:column; min-height:100vh;
+}
+header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 22px; background:var(--bg2); border-bottom:1px solid var(--border);
+  position:sticky; top:0; z-index:10;
+}
+header h1{font-size:17px; margin:0; display:flex; align-items:center; gap:8px;}
+header h1 span.emoji{font-size:20px;}
+.header-right{display:flex; align-items:center; gap:14px;}
+#progresso{font-size:13px; color:var(--muted);}
+#progresso b{color:var(--accent);}
+button{
+  font-family:inherit; cursor:pointer; border:none; border-radius:8px;
+  padding:9px 16px; font-size:13.5px; font-weight:600; transition:filter .15s;
+}
+button:hover{filter:brightness(1.12);}
+button:disabled{opacity:.45; cursor:not-allowed;}
+.btn-primary{background:var(--accent); color:#fff;}
+.btn-check{background:var(--green); color:#06210f;}
+.btn-ghost{background:transparent; color:var(--muted); border:1px solid var(--border);}
+.btn-small{padding:6px 11px; font-size:12px;}
+
+#status-pyodide{
+  font-size:12.5px; color:var(--muted); display:flex; align-items:center; gap:8px;
+}
+.spinner{
+  width:13px; height:13px; border-radius:50%;
+  border:2px solid var(--border); border-top-color:var(--accent);
+  animation:spin 0.8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+#layout{display:flex; flex:1; min-height:0;}
+#sidebar{
+  width:300px; flex-shrink:0; background:var(--bg2); border-right:1px solid var(--border);
+  overflow-y:auto; padding:10px;
+}
+.nivel-group{margin-bottom:6px;}
+.nivel-header{
+  font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);
+  padding:12px 8px 6px;
+}
+.ex-item{
+  display:flex; align-items:center; gap:8px; padding:9px 10px; border-radius:8px;
+  cursor:pointer; margin-bottom:2px; font-size:13.5px; color:var(--text);
+}
+.ex-item:hover{background:var(--panel);}
+.ex-item.active{background:var(--accent); color:#fff;}
+.ex-item .check{width:16px; flex-shrink:0; text-align:center; font-size:12px;}
+.ex-item .badge{
+  font-size:9.5px; padding:2px 6px; border-radius:5px; font-weight:700; flex-shrink:0;
+  text-transform:uppercase; letter-spacing:.03em;
+}
+
+#main{flex:1; min-width:0; overflow-y:auto; padding:24px 32px;}
+.badge-Iniciante{background:#16351f; color:var(--green);}
+.badge-Intermediário{background:#122a4d; color:var(--blue);}
+.badge-Avançado{background:#2d1a42; color:var(--purple);}
+.badge-Profissional{background:#3a2210; color:var(--orange);}
+
+#ex-header{margin-bottom:14px;}
+#ex-header .badges{display:flex; gap:8px; margin-bottom:8px;}
+#ex-header h2{margin:0 0 6px; font-size:22px;}
+#ex-topico{color:var(--muted); font-size:13px;}
+
+.card{
+  background:var(--panel); border:1px solid var(--border); border-radius:12px;
+  padding:18px 20px; margin-bottom:16px;
+}
+.card h3{margin:0 0 10px; font-size:14px; color:var(--accent); text-transform:uppercase; letter-spacing:.04em;}
+#caso p{line-height:1.6; margin:0 0 8px; white-space:pre-wrap;}
+
+.CodeMirror{height:auto; min-height:220px; border-radius:8px; font-size:13.5px; line-height:1.5;}
+.editor-actions{display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;}
+
+#saida-console{
+  background:var(--console-bg); color:#d7e0f5; font-family:'Cascadia Code',Consolas,monospace;
+  font-size:12.5px; padding:14px; border-radius:8px; white-space:pre-wrap; word-break:break-word;
+  min-height:40px; max-height:280px; overflow-y:auto; margin-top:10px;
+}
+#saida-console:empty::before{content:"A saída do seu código aparece aqui..."; color:#5b6785;}
+#saida-console.erro{color:#ff9d9d;}
+
+#feedback{margin-top:12px; padding:12px 14px; border-radius:8px; font-size:13.5px; display:none; line-height:1.55;}
+#feedback.ok{background:#0f2e1d; border:1px solid var(--green); color:#b7f5cf; display:block;}
+#feedback.fail{background:#331414; border:1px solid var(--red); color:#ffc7c7; display:block;}
+#feedback .dica{margin-top:6px; color:inherit; opacity:.9; font-size:12.5px;}
+
+#otimizado{display:none;}
+#otimizado.show{display:block;}
+#otimizado pre{
+  background:var(--console-bg); color:#d7e0f5; padding:14px; border-radius:8px;
+  overflow-x:auto; font-size:12.5px; font-family:Consolas,monospace; line-height:1.55;
+}
+#otimizado ul{margin:10px 0 0; padding-left:20px; font-size:13.5px; line-height:1.6;}
+
+.structural-badge{
+  display:inline-block; background:#3a2210; color:var(--orange); font-size:11.5px;
+  padding:4px 10px; border-radius:6px; margin-bottom:10px;
+}
+
+#novidades-panel{
+  position:fixed; top:0; right:0; width:340px; height:100%; background:var(--bg2);
+  border-left:1px solid var(--border); transform:translateX(100%); transition:transform .2s;
+  z-index:50; padding:18px; overflow-y:auto;
+}
+#novidades-panel.show{transform:translateX(0);}
+#novidades-panel h3{margin-top:0;}
+.novidade-item{border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:10px; font-size:13px;}
+.novidade-item .ver{font-weight:700; color:var(--accent);}
+#overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:40; display:none;
+}
+#overlay.show{display:block;}
+
+footer{padding:10px 22px; font-size:11.5px; color:var(--muted); text-align:center; border-top:1px solid var(--border);}
+footer a{color:var(--accent); cursor:pointer;}
+
+#welcome{max-width:640px; margin:60px auto; text-align:center;}
+#welcome h2{font-size:24px;}
+#welcome p{color:var(--muted); line-height:1.6;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span class="emoji">🐍</span> Prática Python para Dados</h1>
+  <div class="header-right">
+    <span id="progresso">Progresso: <b id="progresso-n">0/16</b></span>
+    <span id="status-pyodide"><span class="spinner"></span> Carregando ambiente Python...</span>
+    <button class="btn-ghost btn-small" id="btn-novidades">🌐 Buscar novidades</button>
+  </div>
+</header>
+
+<div id="layout">
+  <nav id="sidebar"></nav>
+  <main id="main">
+    <div id="welcome">
+      <h2>Bem-vindo(a)!</h2>
+      <p>Escolha um exercício na lista à esquerda. Cada um propõe um caso real de análise/sistema de dados
+      para você programar direto aqui, com Python de verdade rodando no seu navegador
+      (pandas, sqlite3, orientação a objetos e uma introdução a tkinter).</p>
+      <p>Aguarde o ambiente terminar de carregar (canto superior direito) antes de começar.</p>
+    </div>
+  </main>
+</div>
+
+<div id="overlay"></div>
+<div id="novidades-panel">
+  <h3>🌐 Novidades do ecossistema</h3>
+  <p style="color:var(--muted); font-size:12.5px;">Busca ao vivo na PyPI pelas versões mais recentes das bibliotecas usadas aqui. Requer internet.</p>
+  <div id="novidades-conteudo" style="font-size:13px; color:var(--muted);">Clique em atualizar para buscar.</div>
+  <button class="btn-primary btn-small" id="btn-buscar-agora" style="margin-top:12px;">Atualizar agora</button>
+</div>
+
+<footer>
+  Progresso salvo automaticamente neste navegador. <a id="btn-reset">Apagar progresso salvo</a>
+</footer>
+
+<script>
+/* ======================= DADOS DOS EXERCÍCIOS ======================= */
+const EXERCISES = [
+{
+  id:"estoque_total", nivel:"Iniciante", topico:"Python Básico",
+  titulo:"Valor total do estoque de um mercado",
+  caso:`Você é o(a) analista de dados de um pequeno mercado. Recebeu a lista "produtos" abaixo, onde cada item é um dicionário com 'nome', 'preco' e 'quantidade'.
+
+Calcule o valor total do estoque (soma de preco * quantidade de cada item) e guarde em uma variável "valor_total_estoque".
+Descubra também o nome do produto com maior preço unitário e guarde em "produto_mais_caro".`,
+  starter:`produtos = [
+    {"nome": "Arroz 5kg", "preco": 24.90, "quantidade": 120},
+    {"nome": "Feijão 1kg", "preco": 8.50, "quantidade": 200},
+    {"nome": "Óleo de Soja", "preco": 7.20, "quantidade": 150},
+    {"nome": "Café 500g", "preco": 15.00, "quantidade": 80},
+]
+
+# TODO: calcule o valor total do estoque (soma de preco * quantidade)
+valor_total_estoque = 0
+
+# TODO: descubra o nome do produto com maior preço unitário
+produto_mais_caro = ""
+`,
+  check:`_ok = True
+_msgs = []
+try:
+    if abs(valor_total_estoque - 6968.0) > 0.01:
+        _ok = False
+        _msgs.append(f"valor_total_estoque deveria ser 6968.0, mas veio {valor_total_estoque}")
+except NameError:
+    _ok = False
+    _msgs.append("variável valor_total_estoque não foi definida")
+
+try:
+    if produto_mais_caro != "Arroz 5kg":
+        _ok = False
+        _msgs.append(f"produto_mais_caro deveria ser 'Arroz 5kg', mas veio {produto_mais_caro!r}")
+except NameError:
+    _ok = False
+    _msgs.append("variável produto_mais_caro não foi definida")
+
+{"ok": _ok, "message": "Tudo certo! 🎉" if _ok else " | ".join(_msgs)}
+`,
+  otimizado:`produtos = [
+    {"nome": "Arroz 5kg", "preco": 24.90, "quantidade": 120},
+    {"nome": "Feijão 1kg", "preco": 8.50, "quantidade": 200},
+    {"nome": "Óleo de Soja", "preco": 7.20, "quantidade": 150},
+    {"nome": "Café 500g", "preco": 15.00, "quantidade": 80},
+]
+
+valor_total_estoque = sum(p["preco"] * p["quantidade"] for p in produtos)
+produto_mais_caro = max(produtos, key=lambda p: p["preco"])["nome"]
+`,
+  melhorias:[
+    "sum() com generator expression substitui o loop for + variável acumuladora",
+    "max() com key= substitui a comparação manual item a item",
+    "Menos variáveis intermediárias, código mais direto de ler"
+  ]
+},
+{
+  id:"validador_email", nivel:"Iniciante", topico:"Python Básico",
+  titulo:"Validador de e-mails de clientes",
+  caso:`Você recebeu uma lista de e-mails cadastrados por clientes no site. Alguns foram digitados errado.
+
+Um e-mail é considerado válido (checagem simples) se: tem exatamente um '@', tem pelo menos um '.' depois do @, e não tem espaços no início/fim.
+
+Crie uma função "validar_email(email)" que retorna True/False, e uma lista "emails_validos" só com os válidos da lista "emails" abaixo.`,
+  starter:`emails = [
+    "ana@gmail.com",
+    "bruno@@hotmail.com",
+    "carla.com",
+    " diego@yahoo.com",
+    "eduarda@empresa.com.br",
+    "fabio@",
+]
+
+def validar_email(email):
+    # TODO: retorne True se o e-mail:
+    # - tiver exatamente um '@'
+    # - tiver pelo menos um '.' depois do '@'
+    # - não tiver espaços no início/fim
+    pass
+
+# TODO: use a função acima para montar a lista emails_validos
+emails_validos = []
+`,
+  check:`_ok = True
+_msgs = []
+
+try:
+    if validar_email("ana@gmail.com") is not True:
+        _ok = False
+        _msgs.append("validar_email('ana@gmail.com') deveria retornar True")
+    if validar_email("carla.com") is not False:
+        _ok = False
+        _msgs.append("validar_email('carla.com') deveria retornar False (sem @)")
+    if validar_email(" diego@yahoo.com") is not False:
+        _ok = False
+        _msgs.append("validar_email(' diego@yahoo.com') deveria retornar False (tem espaço)")
+    if validar_email("fabio@") is not False:
+        _ok = False
+        _msgs.append("validar_email('fabio@') deveria retornar False (nada depois do @)")
+except NameError:
+    _ok = False
+    _msgs.append("função validar_email não foi definida")
+except Exception as e:
+    _ok = False
+    _msgs.append(f"validar_email deu erro ao ser chamada: {e}")
+
+try:
+    esperado = ["ana@gmail.com", "eduarda@empresa.com.br"]
+    if list(emails_validos) != esperado:
+        _ok = False
+        _msgs.append(f"emails_validos deveria ser {esperado}, mas veio {list(emails_validos)}")
+except NameError:
+    _ok = False
+    _msgs.append("variável emails_validos não foi definida")
+
+{"ok": _ok, "message": "Tudo certo! 🎉" if _ok else " | ".join(_msgs)}
+`,
+  otimizado:`def validar_email(email):
+    if email != email.strip():
+        return False
+    if email.count("@") != 1:
+        return False
+    usuario, dominio = email.split("@")
+    return "." in dominio and len(dominio.split(".")[-1]) > 0
+
+emails_validos = [e for e in emails if validar_email(e)]
+`,
+  melhorias:[
+    "List comprehension no lugar de loop + append",
+    "split('@') separa as partes em vez de vários ifs aninhados",
+    "Early return deixa a função mais fácil de ler que ifs aninhados"
+  ]
+},
+{
+  id:"relatorio_vendas_dia", nivel:"Iniciante", topico:"Python Básico",
+  titulo:"Relatório rápido de vendas do dia",
+  caso:`Uma loja te passou os valores de venda do dia. Calcule o total, a média, a maior e a menor venda usando funções separadas.`,
+  starter:`vendas = [120.50, 340.00, 89.90, 560.30, 15.00, 275.75]
+
+def total_vendas(lista):
+    # TODO: retorne a soma de todas as vendas
+    pass
+
+def media_vendas(lista):
+    # TODO: retorne a média das vendas
+    pass
+
+def maior_venda(lista):
+    # TODO: retorne o maior valor
+    pass
+
+def menor_venda(lista):
+    # TODO: retorne o menor valor
+    pass
+
+total = total_vendas(vendas)
+media = media_vendas(vendas)
+maior = maior_venda(vendas)
+menor = menor_venda(vendas)
+`,
+  check:`_ok = True
+_msgs = []
+_esperado = {"total": 1401.45, "media": 233.575, "maior": 560.30, "menor": 15.00}
+for _nome, _val in _esperado.items():
+    try:
+        _obtido = eval(_nome)
+        if abs(_obtido - _val) > 0.01:
+            _ok = False
+            _msgs.append(f"{_nome} deveria ser {_val}, mas veio {_obtido}")
+    except NameError:
+        _ok = False
+        _msgs.append(f"variável {_nome} não foi definida")
+{"ok": _ok, "message": "Tudo certo! 🎉" if _ok else " | ".join(_msgs)}
+`,
+  otimizado:`vendas = [120.50, 340.00, 89.90, 560.30, 15.00, 275.75]
+
+total = sum(vendas)
+media = total / len(vendas)
+maior = max(vendas)
+menor = min(vendas)
+`,
+  melhorias:[
+    "sum(), max() e min() já existem prontos — não precisa reescrever loops pra isso",
+    "4 funções viraram 4 linhas diretas",
+    "Reaproveita o total já calculado para a média, evita processar a lista duas vezes"
+  ]
+},
+{
+  id:"classe_produto_estoque", nivel:"Intermediário", topico:"POO",
+  titulo:"Classes Produto e Estoque",
+  caso:`Modele um pequeno sistema de estoque com orientação a objetos.
+
+Crie uma classe "Produto" com atributos nome, preco, quantidade.
+Crie uma classe "Estoque" com uma lista interna de produtos, método "adicionar(produto)" e método "valor_total()" que retorna a soma de preco*quantidade de todos os produtos.`,
+  starter:`class Produto:
+    def __init__(self, nome, preco, quantidade):
+        # TODO: guarde os atributos
+        pass
+
+class Estoque:
+    def __init__(self):
+        # TODO: crie uma lista vazia para guardar os produtos
+        pass
+
+    def adicionar(self, produto):
+        # TODO: adicione o produto na lista
+        pass
+
+    def valor_total(self):
+        # TODO: some preco * quantidade de todos os produtos
+        pass
+
+estoque = Estoque()
+estoque.adicionar(Produto("Notebook", 3200.00, 5))
+estoque.adicionar(Produto("Mouse", 45.00, 30))
+estoque.adicionar(Produto("Teclado", 89.90, 20))
+`,
+  check:`_ok = True
+_msgs = []
+try:
+    p = Produto("Teste", 10.0, 2)
+    if not (p.nome == "Teste" and p.preco == 10.0 and p.quantidade == 2):
+        _ok = False
+        _msgs.append("os atributos nome/preco/quantidade de Produto não foram salvos corretamente no __init__")
+except NameError:
+    _ok = False
+    _msgs.append("classe Produto não foi definida")
+except Exception as e:
+    _ok = False
+    _msgs.append(f"erro ao criar Produto: {e}")
+
+try:
+    vt = estoque.valor_total()
+    if abs(vt - 19148.0) > 0.01:
+        _ok = False
+        _msgs.append(f"estoque.valor_total() deveria ser 19148.0, mas veio {vt}")
+except NameError:
+    _ok = False
+    _msgs.append("variável estoque não foi definida (ou classe Estoque incompleta)")
+except Exception as e:
+    _ok = False
+    _msgs.append(f"erro ao chamar estoque.valor_total(): {e}")
+
+{"ok": _ok, "message": "Tudo certo! 🎉" if _ok else " | ".join(_msgs)}
+`,
+  otimizado:`class Produto:
+    def __init__(self, nome, preco, quantidade):
+        self.nome = nome
+        self.preco = preco
+        self.quantidade = quantidade
+
+    @property
+    def valor(self):
+        return self.preco * self.quantidade
+
+
+class Estoque:
+    def __init__(self):
+        self.produtos = []
+
+    def adicionar(self, produto):
+        self.produtos.append(produto)
+
+    def valor_total(self):
+        return sum(p.valor for p in self.produtos)
+
+
+estoque = Estoque()
+estoque.adicionar(Produto("Notebook", 3200.00, 5))
+estoque.adicionar(Produto("Mouse", 45.00, 30))
+estoque.adicionar(Produto("Teclado", 89.90, 20))
+`,
+  melhorias:[
+    "@property valor deixa o cálculo disponível como atributo, sem chamar como método",
+    "sum() com generator expression substitui o loop manual dentro de valor_total",
+    "Separação de responsabilidade: Produto sabe calcular seu próprio valor"
+  ]
+},
+{
+  id:"heranca_funcionarios", nivel:"Intermediário", topico:"POO",
+  titulo:"Folha de pagamento com herança",
+  caso:`Uma empresa paga funcionários de forma diferente conforme o cargo.
+
+Crie uma classe base "Funcionario" (nome, salario_base) com método "calcular_pagamento()" que retorna salario_base.
+Crie "Vendedor(Funcionario)", que recebe também "comissao"; pagamento = salario_base + comissao.
+Crie "Gerente(Funcionario)", que recebe "bonus"; pagamento = salario_base + bonus*1.1 (o bônus do gerente rende 10% a mais).
+Calcule a folha de pagamento total da lista "funcionarios" em "folha_pagamento_total".`,
+  starter:`class Funcionario:
+    def __init__(self, nome, salario_base):
+        self.nome = nome
+        self.salario_base = salario_base
+
+    def calcular_pagamento(self):
+        return self.salario_base
+
+
+class Vendedor(Funcionario):
+    def __init__(self, nome, salario_base, comissao):
+        # TODO: chame o __init__ da classe base e guarde a comissão
+        pass
+
+    def calcular_pagamento(self):
+        # TODO: salario_base + comissao
+        pass
+
+
+class Gerente(Funcionario):
+    def __init__(self, nome, salario_base, bonus):
+        # TODO: chame o __init__ da classe base e guarde o bônus
+        pass
+
+    def calcular_pagamento(self):
+        # TODO: salario_base + bonus * 1.1
+        pass
+
+
+funcionarios = [
+    Funcionario("Ana", 2000),
+    Vendedor("Bruno", 1800, comissao=650),
+    Gerente("Carla", 4000, bonus=1000),
+]
+
+# TODO: some o pagamento de todos os funcionários da lista
+folha_pagamento_total = 0
+`,
+  check:`_ok = True
+_msgs = []
+try:
+    v = Vendedor("Teste", 1000, comissao=200)
+    if abs(v.calcular_pagamento() - 1200) > 0.01:
+        _ok = False
+        _msgs.append(f"Vendedor com salario_base=1000 e comissao=200 deveria pagar 1200, veio {v.calcular_pagamento()}")
+except Exception as e:
+    _ok = False
+    _msgs.append(f"erro testando Vendedor: {e}")
+
+try:
+    g = Gerente("Teste", 1000, bonus=200)
+    if abs(g.calcular_pagamento() - 1220) > 0.01:
+        _ok = False
+        _msgs.append(f"Gerente com salario_base=1000 e bonus=200 deveria pagar 1220, veio {g.calcular_pagamento()}")
+except Exception as e:
+    _ok = False
+    _msgs.append(f"erro testando Gerente: {e}")
+
+try:
+    if abs(folha_pagamento_total - 9550) > 0.01:
+        _ok = False
+        _msgs.append(f"folha_pagamento_total deveria ser 9550, veio {folha_pagamento_total}")
+except NameError:
+    _ok = False
+    _msgs.append("variável folha_pagamento_total não foi definida")
+
+{"ok": _ok, "message": "Tudo certo! 🎉" if _ok else " | ".join(_msgs)}
+`,
+  otimizado:`class Funcionario:
+    def __init__(self, nome, salario_base):
+        self.nome = nome
+        self.salario_base = salario_base
+
+    def calcular_pagamento(self):
+        return self.salario_base
+
+
+class Vendedor(Funcionario):
+    def __init__(self, nome, salario_base, comissao):
+        super().__init__(nome, salario_base)
+        self.comissao = comissao
+
+    def calcular_pagamento(self):
+        return self.salario_base + self.comissao
+
+
+class Gerente(Funcionario):
+    def __init__(self, nome, salario_base, bonus):
+        super().__init__(nome, salario_base)
+        self.bonus = bonus
+
+    def calcular_pagamento(self):
+        return self.salario_base + self.bonus * 1.1
+
+
+funcionarios = [
+    Funcionario("Ana", 2000),
+    Vendedor("Bruno", 1800, comissao=650),
+    Gerente("Carla", 4000, bonus=1000),
+]
+
+folha_pagamento_total = sum(f.calcular_pagamento() for f in funcionarios)
+`,
+  melhorias:[
+    "super().__init__() evita repetir a lógica de guardar nome/salario_base",
+    "Polimorfismo: o mesmo f.calcular_pagamento() funciona pra qualquer subclasse, sem if de tipo",
+    "sum() com generator expression no lugar de loop com acumulador"
+  ]
+},
+{
+  id:"conta_bancaria", nivel:"Intermediário", topico:"POO",
+  titulo:"Conta bancária com encapsulamento",
+  caso:`Crie uma classe ContaBancaria com saldo "privado" (_saldo), método "depositar(valor)", "sacar(valor)" (não pode deixar saldo negativo — se não tiver saldo suficiente, não saca e retorna False, senão retorna True) e "extrato()" que retorna uma string "Saldo atual: R$ X.XX". Implemente também __str__ para que print(conta) mostre o mesmo texto do extrato.`,
+  starter:`class ContaBancaria:
+    def __init__(self, titular, saldo_inicial=0):
+        self.titular = titular
+        self._saldo = saldo_inicial
+
+    def depositar(self, valor):
+        # TODO: soma valor ao saldo (assuma valor > 0)
+        pass
+
+    def sacar(self, valor):
+        # TODO: se tiver saldo suficiente, subtrai e retorna True
+        # TODO: senão, não mexe no saldo e retorna False
+        pass
+
+    def extrato(self):
+        # TODO: retorne uma string "Saldo atual: R$ X.XX"
+        pass
+
+    def __str__(self):
+        # TODO: retorne o mesmo texto de extrato()
+        pass
+
+
+conta = ContaBancaria("Rafael", 1000)
+conta.depositar(500)
+saque_ok = conta.sacar(2000)
+saque_ok2 = conta.sacar(300)
+`,
+  check:`_ok = True
+_msgs = []
+try:
+    if saque_ok is not False:
+        _ok = False
+        _msgs.append("sacar(2000) deveria retornar False (saldo insuficiente)")
+    if saque_ok2 is not True:
+        _ok = False
+        _msgs.append("sacar(300) deveria retornar True")
+    if abs(conta._saldo - 1200) > 0.01:
+        _ok = False
+        _msgs.append(f"saldo final deveria ser 1200, veio {conta._saldo}")
+    if conta.extrato() != "Saldo atual: R$ 1200.00":
+        _ok = False
+        _msgs.append(f"extrato() deveria ser 'Saldo atual: R$ 1200.00', veio {conta.extrato()!r}")
+    if str(conta) != conta.extrato():
+        _ok = False
+        _msgs.append("__str__ deveria retornar o mesmo texto de extrato()")
+except NameError:
+    _ok = False
+    _msgs.append("variável conta não foi definida corretamente")
+except Exception as e:
+    _ok = False
+    _msgs.append(f"erro: {e}")
+
+{"ok": _ok, "message": "Tudo certo! 🎉" if _ok else " | ".join(_msgs)}
+`,
+  otimizado:`class ContaBancaria:
+    def __init__(self, titular, saldo_inicial=0):
+        self.titular = titular
+        self._saldo = saldo_inicial
+
+    def depositar(self, valor):
+        self._saldo += valor
+
+    def sacar(self, valor):
+        if valor > self._saldo:
+            return False
+        self._saldo -= valor
+        return True
+
+    def extrato(self):
+        return f"Saldo atual: R$ {self._saldo:.2f}"
+
+    __str__ = extrato
+
+
+conta = ContaBancaria("Rafael", 1000)
+conta.depositar(500)
+saque_ok = conta.sacar(2000)
+saque_ok2 = conta.sacar(300)
+`,
+  melhorias:[
+    "f-string com :.2f formata o valor em 2 casas decimais automaticamente",
+    "__str__ = extrato reaproveita o método em vez de duplicar código",
+    "sacar() com early return deixa a regra de negócio explícita na primeira linha"
+  ]
+},
+{
+  id:"analise_vendas_df", nivel:"Avançado", topico:"Pandas",
+  titulo:"Análise de vendas com DataFrame",
+  caso:`Monte um DataFrame "df" a partir do dicionário "dados". Crie a coluna 'receita' (quantidade * preco_unitario). Agrupe por produto somando a receita, ordenado do maior para o menor, em "total_por_produto". Descubra o produto de maior receita total em "produto_mais_vendido".`,
+  starter:`import pandas as pd
+
+dados = {
+    "produto": ["Notebook", "Mouse", "Notebook", "Teclado", "Mouse", "Notebook"],
+    "quantidade": [2, 5, 1, 3, 2, 1],
+    "preco_unitario": [3200, 45, 3200, 90, 45, 3200],
+}
+
+df = pd.DataFrame(dados)
+
+# TODO: crie uma coluna 'receita' = quantidade * preco_unitario
+df["receita"] = None
+
+# TODO: agrupe por produto, some a receita, ordene do maior pro menor
+total_por_produto = None
+
+# TODO: nome do produto com maior receita total
+produto_mais_vendido = None
+`,
+  check:`_ok = True
+_msgs = []
+try:
+    if "receita" not in df.columns:
+        _ok = False
+        _msgs.append("a coluna 'receita' não foi criada no df")
+    elif list(df["receita"]) != [6400, 225, 3200, 270, 90, 3200]:
+        _ok = False
+        _msgs.append(f"coluna receita com valores errados: {list(df['receita'])}")
+except NameError:
+    _ok = False
+    _msgs.append("variável df não foi definida")
+
+try:
+    tp = dict(total_por_produto)
+    esperado = {"Notebook": 12800, "Mouse": 315, "Teclado": 270}
+    if {k: round(float(v), 2) for k, v in tp.items()} != esperado:
+        _ok = False
+        _msgs.append(f"total_por_produto deveria somar {esperado}, veio {tp}")
+    else:
+        valores = list(total_por_produto.values)
+        if valores != sorted(valores, reverse=True):
+            _ok = False
+            _msgs.append("total_por_produto deveria estar ordenado do maior para o menor")
+except NameError:
+    _ok = False
+    _msgs.append("variável total_por_produto não foi definida")
+except Exception as e:
+    _ok = False
+    _msgs.append(f"erro analisando total_por_produto: {e}")
+
+try:
+    if produto_mais_vendido != "Notebook":
+        _ok = False
+        _msgs.append(f"produto_mais_vendido deveria ser 'Notebook', veio {produto_mais_vendido!r}")
+except NameError:
+    _ok = False
+    _msgs.append("variável produto_mais_vendido não foi definida")
+
+{"ok": _ok, "message": "Tudo certo! 🎉" if _ok else " | ".join(_msgs)}
+`,
+  otimizado:`import pandas as pd
+
+dados = {
+    "produto": ["Notebook", "Mouse", "Notebook", "Teclado", "Mouse", "Notebook"],
+    "quantidade": [2, 5, 1, 3, 2, 1],
+    "preco_unitario": [3200, 45, 3200, 90, 45, 3200],
+}
+
+df = pd.DataFrame(dados)
+df["receita"] = df["quantidade"] * df["preco_unitario"]
+
+total_por_produto = df.groupby("produto")["receita"].sum().sort_values(ascending=False)
+produto_mais_vendido = total_por_produto.idxmax()
+`,
+  melhorias:[
+    "Operação vetorizada (coluna * coluna) substitui qualquer loop linha a linha",
+    "groupby + sum + sort_values faz em uma linha o que seria várias linhas manuais",
+    "idxmax() já devolve o índice (produto) do maior valor, sem comparar item a item"
+  ]
+},
+{
+  id:"limpeza_dados_clientes", nivel:"Avançado", topico:"Pandas",
+  titulo:"Limpeza de uma base de clientes",
+  caso:`A planilha de clientes veio suja: telefone faltando (None), nome duplicado e uma idade negativa (erro de digitação).
+
+Limpe o DataFrame em "df_limpo": (1) remova duplicados pelo nome, (2) preencha telefones faltando com 'não informado', (3) remova linhas com idade negativa. Guarde a quantidade de linhas restantes em "total_linhas_limpo".`,
+  starter:`import pandas as pd
+
+dados = {
+    "nome": ["Ana", "Bruno", "Ana", "Carla", "Diego"],
+    "idade": [28, 35, 28, -5, 41],
+    "telefone": ["11999990000", None, "11999990000", "11988887777", None],
+}
+
+df = pd.DataFrame(dados)
+
+# TODO: remova duplicados pelo nome, preencha telefone faltando com 'não informado',
+# e remova linhas com idade negativa. Salve o resultado em df_limpo.
+df_limpo = df.copy()
+
+total_linhas_limpo = len(df_limpo)
+`,
+  check:`_ok = True
+_msgs = []
+try:
+    n = len(df_limpo)
+    if n != 3:
+        _ok = False
+        _msgs.append(f"df_limpo deveria ter 3 linhas, tem {n}")
+    if df_limpo["nome"].duplicated().any():
+        _ok = False
+        _msgs.append("ainda existem nomes duplicados em df_limpo")
+    if (df_limpo["idade"] < 0).any():
+        _ok = False
+        _msgs.append("ainda existe idade negativa em df_limpo")
+    if df_limpo["telefone"].isna().any():
+        _ok = False
+        _msgs.append("ainda existem telefones vazios em df_limpo — preencha com 'não informado'")
+except NameError:
+    _ok = False
+    _msgs.append("variável df_limpo não foi definida")
+except Exception as e:
+    _ok = False
+    _msgs.append(f"erro: {e}")
+
+try:
+    if total_linhas_limpo != 3:
+        _ok = False
+        _msgs.append(f"total_linhas_limpo deveria ser 3, veio {total_linhas_limpo}")
+except NameError:
+    _ok = False
+    _msgs.append("variável total_linhas_limpo não foi definida")
+
+{"ok": _ok, "message": "Tudo certo! 🎉" if _ok else " | ".join(_msgs)}
+`,
+  otimizado:`import pandas as pd
+
+dados = {
+    "nome": ["Ana", "Bruno", "Ana", "Carla", "Diego"],
+    "idade": [28, 35, 28, -5, 41],
+    "telefone": ["11999990000", None, "11999990000", "11988887777", None],
+}
+
+df = pd.DataFrame(dados)
+
+df_limpo = (
+    df.drop_duplicates(subset="nome")
+      .query("idade >= 0")
+      .assign(telefone=lambda d: d["telefone"].fillna("não informado"))
+)
+
+total_linhas_limpo = len(df_limpo)
+`,
+  melhorias:[
+    "Method chaining evita variáveis intermediárias (df2, df3, df4...)",
+    "query() é mais legível que df[df['idade'] >= 0]",
+    "assign() com lambda cria a coluna dentro da própria cadeia, sem quebrar o fluxo"
+  ]
+},
+{
+  id:"vendas_por_regiao_pivot", nivel:"Avançado", topico:"Pandas",
+  titulo:"Tabela dinâmica de vendas por região e mês",
+  caso:`Crie uma pivot_table com regiões nas linhas, meses nas colunas e soma de valor_venda, preenchendo com 0 onde não houver venda. Guarde em "tabela_regiao_mes". Descubra a região com maior total somando todos os meses, em "regiao_campea".`,
+  starter:`import pandas as pd
+
+dados = {
+    "regiao": ["SP", "SP", "RJ", "MG", "SP", "RJ"],
+    "mes": ["Jan", "Fev", "Jan", "Jan", "Jan", "Fev"],
+    "valor_venda": [1000, 1500, 800, 600, 1200, 900],
+}
+
+df = pd.DataFrame(dados)
+
+# TODO: pivot_table com index='regiao', columns='mes', values='valor_venda',
+# agregando com soma e preenchendo vazios com 0
+tabela_regiao_mes = None
+
+# TODO: região com maior total somando todos os meses
+regiao_campea = None
+`,
+  check:`_ok = True
+_msgs = []
+try:
+    t = tabela_regiao_mes
+    if round(float(t.loc["SP", "Jan"]), 2) != 2200:
+        _ok = False
+        _msgs.append("tabela_regiao_mes.loc['SP','Jan'] deveria ser 2200")
+    if round(float(t.loc["SP", "Fev"]), 2) != 1500:
+        _ok = False
+        _msgs.append("tabela_regiao_mes.loc['SP','Fev'] deveria ser 1500")
+    if round(float(t.loc["MG", "Fev"]), 2) != 0:
+        _ok = False
+        _msgs.append("tabela_regiao_mes.loc['MG','Fev'] deveria ser 0 (preenchido, não NaN)")
+except NameError:
+    _ok = False
+    _msgs.append("variável tabela_regiao_mes não foi definida")
+except Exception as e:
+    _ok = False
+    _msgs.append(f"erro checando tabela_regiao_mes: {e}")
+
+try:
+    if regiao_campea != "SP":
+        _ok = False
+        _msgs.append(f"regiao_campea deveria ser 'SP', veio {regiao_campea!r}")
+except NameError:
+    _ok = False
+    _msgs.append("variável regiao_campea não foi definida")
+
+{"ok": _ok, "message": "Tudo certo! 🎉" if _ok else " | ".join(_msgs)}
+`,
+  otimizado:`import pandas as pd
+
+dados = {
+    "regiao": ["SP", "SP", "RJ", "MG", "SP", "RJ"],
+    "mes": ["Jan", "Fev", "Jan", "Jan", "Jan", "Fev"],
+    "valor_venda": [1000, 1500, 800, 600, 1200, 900],
+}
+
+df = pd.DataFrame(dados)
+
+tabela_regiao_mes = df.pivot_table(
+    index="regiao", columns="mes", values="valor_venda", aggfunc="sum", fill_value=0
+)
+
+regiao_campea = tabela_regiao_mes.sum(axis=1).idxmax()
+`,
+  melhorias:[
+    "pivot_table já faz agrupamento + reformatação numa chamada só",
+    "fill_value=0 elimina a necessidade de um fillna() separado depois",
+    "sum(axis=1).idxmax() soma as linhas e já devolve a região vencedora direto"
+  ]
+},
+{
+  id:"merge_clientes_pedidos", nivel:"Avançado", topico:"Pandas",
+  titulo:"Merge de clientes e pedidos",
+  caso:`Junte (merge) as tabelas "clientes" e "pedidos" para saber, por cliente, o total gasto. Guarde o resultado como uma Series indexada pelo nome do cliente em "gasto_por_cliente", e o nome de quem mais gastou em "cliente_top".`,
+  starter:`import pandas as pd
+
+clientes = pd.DataFrame({
+    "id": [1, 2, 3],
+    "nome": ["Ana", "Bruno", "Carla"],
+})
+
+pedidos = pd.DataFrame({
+    "id_cliente": [1, 1, 2, 3, 3, 3],
+    "valor": [100, 150, 80, 200, 50, 300],
+})
+
+# TODO: junte clientes e pedidos (merge), agrupe por nome e some o valor.
+# Guarde como Series (índice = nome) em gasto_por_cliente
+gasto_por_cliente = None
+
+# TODO: nome do cliente que mais gastou no total
+cliente_top = None
+`,
+  check:`_ok = True
+_msgs = []
+try:
+    g_round = {k: round(float(v), 2) for k, v in dict(gasto_por_cliente).items()}
+    esperado = {"Ana": 250, "Bruno": 80, "Carla": 550}
+    if g_round != esperado:
+        _ok = False
+        _msgs.append(f"gasto_por_cliente deveria somar {esperado}, veio {g_round}")
+except NameError:
+    _ok = False
+    _msgs.append("variável gasto_por_cliente não foi definida")
+except Exception as e:
+    _ok = False
+    _msgs.append(f"erro checando gasto_por_cliente: {e} (dica: guarde como Series indexada pelo nome)")
+
+try:
+    if cliente_top != "Carla":
+        _ok = False
+        _msgs.append(f"cliente_top deveria ser 'Carla', veio {cliente_top!r}")
+except NameError:
+    _ok = False
+    _msgs.append("variável cliente_top não foi definida")
+
+{"ok": _ok, "message": "Tudo certo! 🎉" if _ok else " | ".join(_msgs)}
+`,
+  otimizado:`import pandas as pd
+
+clientes = pd.DataFrame({"id": [1, 2, 3], "nome": ["Ana", "Bruno", "Carla"]})
+pedidos = pd.DataFrame({
+    "id_cliente": [1, 1, 2, 3, 3, 3],
+    "valor": [100, 150, 80, 200, 50, 300],
+})
+
+gasto_por_cliente = (
+    pedidos.merge(clientes, left_on="id_cliente", right_on="id")
+           .groupby("nome")["valor"]
+           .sum()
+)
+cliente_top = gasto_por_cliente.idxmax()
+`,
+  melhorias:[
+    "merge().groupby().sum() numa cadeia só, sem tabela intermediária guardada à parte",
+    "idxmax() acha o campeão direto, sem ordenar a tabela toda"
+  ]
+},
+{
+  id:"cadastro_sqlite", nivel:"Avançado", topico:"SQLite",
+  titulo:"Cadastro de produtos em banco SQLite",
+  caso:`Crie um banco SQLite em memória, uma tabela "produtos" (id, nome, preco, categoria), insira os produtos e consulte nome e preco dos produtos da categoria 'Eletrônicos', ordenados por preço decrescente. Guarde a lista de tuplas em "eletronicos_caros".`,
+  starter:`import sqlite3
+
+conn = sqlite3.connect(":memory:")
+cursor = conn.cursor()
+
+cursor.execute("""
+    CREATE TABLE produtos (
+        id INTEGER PRIMARY KEY,
+        nome TEXT,
+        preco REAL,
+        categoria TEXT
+    )
+""")
+
+produtos = [
+    (1, "Notebook", 3200.0, "Eletrônicos"),
+    (2, "Mouse", 45.0, "Eletrônicos"),
+    (3, "Arroz 5kg", 24.9, "Alimentos"),
+    (4, "Monitor", 890.0, "Eletrônicos"),
+]
+
+# TODO: insira todos os produtos na tabela (cursor.executemany é uma boa opção)
+
+conn.commit()
+
+# TODO: consulte nome e preco dos produtos da categoria 'Eletrônicos',
+# ordenados por preco decrescente, e guarde a lista de tuplas em eletronicos_caros
+eletronicos_caros = []
+`,
+  check:`_ok = True
+_msgs = []
+try:
+    esperado = [("Notebook", 3200.0), ("Monitor", 890.0), ("Mouse", 45.0)]
+    obtido = [(n, float(p)) for n, p in eletronicos_caros]
+    if obtido != esperado:
+        _ok = False
+        _msgs.append(f"eletronicos_caros deveria ser {esperado}, veio {obtido}")
+except NameError:
+    _ok = False
+    _msgs.append("variável eletronicos_caros não foi definida")
+except Exception as e:
+    _ok = False
+    _msgs.append(f"erro: {e}")
+
+{"ok": _ok, "message": "Tudo certo! 🎉" if _ok else " | ".join(_msgs)}
+`,
+  otimizado:`import sqlite3
+
+with sqlite3.connect(":memory:") as conn:
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE produtos (
+            id INTEGER PRIMARY KEY,
+            nome TEXT,
+            preco REAL,
+            categoria TEXT
+        )
+    """)
+
+    produtos = [
+        (1, "Notebook", 3200.0, "Eletrônicos"),
+        (2, "Mouse", 45.0, "Eletrônicos"),
+        (3, "Arroz 5kg", 24.9, "Alimentos"),
+        (4, "Monitor", 890.0, "Eletrônicos"),
+    ]
+    cursor.executemany("INSERT INTO produtos VALUES (?, ?, ?, ?)", produtos)
+
+    eletronicos_caros = cursor.execute("""
+        SELECT nome, preco FROM produtos
+        WHERE categoria = 'Eletrônicos'
+        ORDER BY preco DESC
+    """).fetchall()
+`,
+  melhorias:[
+    "executemany() insere a lista inteira numa chamada, sem loop de execute() um a um",
+    "with sqlite3.connect(...) fecha a conexão sozinho, mesmo se der erro no meio",
+    "Encadear .execute(...).fetchall() evita guardar um cursor à parte"
+  ]
+},
+{
+  id:"consultas_sql_avancadas", nivel:"Avançado", topico:"SQLite",
+  titulo:"JOIN entre clientes e pedidos",
+  caso:`Duas tabelas: clientes (id, nome, cidade) e pedidos (id, id_cliente, valor). Escreva uma consulta com JOIN que retorne, para cada cidade, o total gasto pelos clientes dessa cidade, ordenado do maior pro menor. Guarde (fetchall) em "total_por_cidade".`,
+  starter:`import sqlite3
+
+conn = sqlite3.connect(":memory:")
+cursor = conn.cursor()
+
+cursor.executescript("""
+    CREATE TABLE clientes (id INTEGER PRIMARY KEY, nome TEXT, cidade TEXT);
+    CREATE TABLE pedidos (id INTEGER PRIMARY KEY, id_cliente INTEGER, valor REAL);
+""")
+
+cursor.executemany("INSERT INTO clientes VALUES (?, ?, ?)", [
+    (1, "Ana", "SP"), (2, "Bruno", "RJ"), (3, "Carla", "SP"), (4, "Diego", "BH"),
+])
+cursor.executemany("INSERT INTO pedidos VALUES (?, ?, ?)", [
+    (1, 1, 300), (2, 2, 150), (3, 3, 400), (4, 1, 100), (5, 4, 90),
+])
+conn.commit()
+
+# TODO: escreva um SELECT com JOIN entre clientes e pedidos, agrupando por cidade,
+# somando valor e ordenando do maior total para o menor.
+# Guarde o resultado (fetchall) em total_por_cidade
+total_por_cidade = []
+`,
+  check:`_ok = True
+_msgs = []
+try:
+    esperado = [("SP", 800.0), ("RJ", 150.0), ("BH", 90.0)]
+    obtido = [(c, float(v)) for c, v in total_por_cidade]
+    if obtido != esperado:
+        _ok = False
+        _msgs.append(f"total_por_cidade deveria ser {esperado}, veio {obtido}")
+except NameError:
+    _ok = False
+    _msgs.append("variável total_por_cidade não foi definida")
+except Exception as e:
+    _ok = False
+    _msgs.append(f"erro: {e}")
+
+{"ok": _ok, "message": "Tudo certo! 🎉" if _ok else " | ".join(_msgs)}
+`,
+  otimizado:`total_por_cidade = cursor.execute("""
+    SELECT c.cidade, SUM(p.valor) AS total
+    FROM clientes c
+    JOIN pedidos p ON p.id_cliente = c.id
+    GROUP BY c.cidade
+    ORDER BY total DESC
+""").fetchall()
+`,
+  melhorias:[
+    "SUM + GROUP BY agrupa dentro do próprio banco, sem trazer tudo pro Python pra somar na mão",
+    "ORDER BY total DESC já devolve ordenado, sem sorted() depois",
+    "Uma consulta só substitui múltiplos SELECTs + loops de agregação manual"
+  ]
+},
+{
+  id:"pandas_sqlite_integracao", nivel:"Avançado", topico:"SQLite",
+  titulo:"Integração Pandas + SQLite",
+  caso:`Salve o DataFrame "df_vendas" numa tabela SQLite chamada 'vendas' (to_sql). Depois faça uma consulta SQL agrupando por vendedor, somando o valor, ordenado do maior pro menor, trazendo de volta como DataFrame (read_sql_query) em "resumo_vendedores".`,
+  starter:`import sqlite3
+import pandas as pd
+
+df_vendas = pd.DataFrame({
+    "vendedor": ["Ana", "Bruno", "Ana", "Carla", "Bruno", "Ana"],
+    "valor": [500, 300, 700, 400, 250, 150],
+})
+
+conn = sqlite3.connect(":memory:")
+
+# TODO: salve df_vendas na tabela 'vendas' do banco (df.to_sql)
+
+# TODO: faça uma consulta SQL agrupando por vendedor, somando valor,
+# ordenando decrescente, e traga o resultado como DataFrame com pd.read_sql_query
+resumo_vendedores = None
+`,
+  check:`_ok = True
+_msgs = []
+try:
+    r = resumo_vendedores
+    cols = [c.lower() for c in r.columns]
+    if "vendedor" not in cols:
+        _ok = False
+        _msgs.append("resumo_vendedores deveria ter uma coluna 'vendedor'")
+    else:
+        col_total = [c for c in r.columns if c.lower() != "vendedor"][0]
+        obtido = dict(zip(r["vendedor"], r[col_total].round(2)))
+        esperado = {"Ana": 1350.0, "Bruno": 550.0, "Carla": 400.0}
+        if {k: float(v) for k, v in obtido.items()} != esperado:
+            _ok = False
+            _msgs.append(f"totais deveriam ser {esperado}, veio {obtido}")
+        else:
+            valores = list(r[col_total])
+            if valores != sorted(valores, reverse=True):
+                _ok = False
+                _msgs.append("resumo_vendedores deveria estar ordenado do maior pro menor total")
+except NameError:
+    _ok = False
+    _msgs.append("variável resumo_vendedores não foi definida")
+except Exception as e:
+    _ok = False
+    _msgs.append(f"erro: {e}")
+
+{"ok": _ok, "message": "Tudo certo! 🎉" if _ok else " | ".join(_msgs)}
+`,
+  otimizado:`import sqlite3
+import pandas as pd
+
+df_vendas = pd.DataFrame({
+    "vendedor": ["Ana", "Bruno", "Ana", "Carla", "Bruno", "Ana"],
+    "valor": [500, 300, 700, 400, 250, 150],
+})
+
+conn = sqlite3.connect(":memory:")
+df_vendas.to_sql("vendas", conn, index=False, if_exists="replace")
+
+resumo_vendedores = pd.read_sql_query("""
+    SELECT vendedor, SUM(valor) AS total
+    FROM vendas
+    GROUP BY vendedor
+    ORDER BY total DESC
+""", conn)
+`,
+  melhorias:[
+    "to_sql() manda o DataFrame inteiro pro banco numa linha, sem INSERTs manuais",
+    "A agregação acontece no SQL (mais rápido em tabelas grandes) em vez de agrupar no pandas depois de trazer tudo",
+    "read_sql_query já devolve um DataFrame pronto, sem conversão extra"
+  ]
+},
+{
+  id:"janela_boas_vindas", nivel:"Profissional", topico:"Tkinter",
+  titulo:"Janela simples com Label e Button",
+  mode:"structural",
+  caso:`Crie uma janela Tkinter com um Label mostrando 'Bem-vindo!' e um Button 'Mudar texto' que, ao ser clicado, muda o texto do Label para 'Você clicou!'.
+
+⚠️ Este ambiente roda dentro do navegador e não consegue abrir uma janela de verdade (não existe tkinter compilado pra rodar no browser). A verificação aqui analisa a ESTRUTURA do seu código. Para ver a janela abrindo de verdade, copie o código e rode no seu computador com Python instalado (python arquivo.py).`,
+  starter:`import tkinter as tk
+
+def mudar_texto():
+    label.config(text="Você clicou!")
+
+janela = tk.Tk()
+janela.title("Boas-vindas")
+
+label = tk.Label(janela, text="Bem-vindo!")
+label.pack()
+
+botao = tk.Button(janela, text="Mudar texto", command=mudar_texto)
+botao.pack()
+
+# janela.mainloop()  # deixe comentado aqui no navegador — rode localmente pra ver a janela
+`,
+  structuralRules:[
+    {re:/import\s+tkinter/, desc:"Importe o módulo tkinter (import tkinter as tk)"},
+    {re:/tk\.Tk\(\)|(?<!\w)Tk\(\)/, desc:"Crie a janela principal com tk.Tk()"},
+    {re:/Label\(/, desc:"Crie um Label"},
+    {re:/Button\(/, desc:"Crie um Button"},
+    {re:/command\s*=/, desc:"Associe uma função ao botão usando command="},
+    {re:/def\s+\w+\s*\(/, desc:"Defina uma função para ser o callback do botão"},
+    {re:/\.config\(|\.configure\(/, desc:"Dentro da função, atualize o texto do label com label.config(text=...)"},
+    {re:/\.pack\(|\.grid\(|\.place\(/, desc:"Adicione os widgets à janela com .pack(), .grid() ou .place()"}
+  ],
+  otimizadoReal:`import tkinter as tk
+
+
+class JanelaBoasVindas(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Boas-vindas")
+
+        self.label = tk.Label(self, text="Bem-vindo!")
+        self.label.pack()
+
+        tk.Button(self, text="Mudar texto", command=self.mudar_texto).pack()
+
+    def mudar_texto(self):
+        self.label.config(text="Você clicou!")
+
+
+if __name__ == "__main__":
+    app = JanelaBoasVindas()
+    app.mainloop()
+`,
+  melhorias:[
+    "Organizar a janela como uma classe (herdando de tk.Tk) facilita crescer o app depois",
+    "self.mudar_texto vira um método, sem depender de variável global 'label'",
+    "if __name__ == '__main__' separa 'definir o app' de 'rodar o app' — padrão usado em projetos reais"
+  ]
+},
+{
+  id:"formulario_cadastro", nivel:"Profissional", topico:"Tkinter",
+  titulo:"Formulário de cadastro com Listbox",
+  mode:"structural",
+  caso:`Crie um formulário Tkinter com um Entry para o nome, um Button 'Salvar' e uma Listbox mostrando os nomes cadastrados. Ao clicar em Salvar, o texto do Entry deve ser adicionado à Listbox e o campo deve ser limpo.
+
+⚠️ Mesma observação do exercício anterior: aqui verificamos a estrutura do código, não a janela em si (o navegador não roda janelas tkinter de verdade).`,
+  starter:`import tkinter as tk
+
+janela = tk.Tk()
+janela.title("Cadastro de Clientes")
+
+entry_nome = tk.Entry(janela)
+entry_nome.pack()
+
+lista_nomes = tk.Listbox(janela)
+lista_nomes.pack()
+
+def salvar_nome():
+    # TODO: pegue o texto do entry_nome (.get())
+    # TODO: adicione na lista_nomes (.insert())
+    # TODO: limpe o entry_nome (.delete(0, tk.END))
+    pass
+
+botao_salvar = tk.Button(janela, text="Salvar", command=salvar_nome)
+botao_salvar.pack()
+
+# janela.mainloop()  # deixe comentado aqui no navegador
+`,
+  structuralRules:[
+    {re:/import\s+tkinter/, desc:"Importe o módulo tkinter (import tkinter as tk)"},
+    {re:/Entry\(/, desc:"Crie um Entry para o nome"},
+    {re:/Listbox\(/, desc:"Crie uma Listbox para mostrar os cadastrados"},
+    {re:/Button\(/, desc:"Crie um Button 'Salvar'"},
+    {re:/command\s*=/, desc:"Associe uma função ao botão usando command="},
+    {re:/\.get\(\)/, desc:"Pegue o texto digitado com .get()"},
+    {re:/\.insert\(/, desc:"Adicione o nome na Listbox com .insert()"},
+    {re:/\.delete\(/, desc:"Limpe o campo Entry depois de salvar com .delete(0, tk.END)"}
+  ],
+  otimizadoReal:`import tkinter as tk
+
+
+class Cadastro(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Cadastro de Clientes")
+
+        self.entry_nome = tk.Entry(self)
+        self.entry_nome.pack()
+
+        self.lista_nomes = tk.Listbox(self)
+        self.lista_nomes.pack()
+
+        tk.Button(self, text="Salvar", command=self.salvar_nome).pack()
+
+    def salvar_nome(self):
+        nome = self.entry_nome.get().strip()
+        if nome:
+            self.lista_nomes.insert(tk.END, nome)
+            self.entry_nome.delete(0, tk.END)
+
+
+if __name__ == "__main__":
+    app = Cadastro()
+    app.mainloop()
+`,
+  melhorias:[
+    "Organizar a tela como uma classe deixa fácil crescer o app sem virar variáveis soltas",
+    "if nome: evita adicionar nomes vazios na lista",
+    "if __name__ == '__main__' é o padrão profissional pra separar 'definir' de 'rodar' o app"
+  ]
+},
+{
+  id:"sistema_gestao_pedidos", nivel:"Profissional", topico:"Projeto Integrador",
+  titulo:"Sistema de gestão de pedidos (POO + SQLite + Pandas)",
+  caso:`Projeto final: um mini sistema de gestão de pedidos que uma loja pequena poderia usar de verdade.
+
+1. Classe "Pedido" (POO): id, cliente, produto, quantidade, preco_unitario, e uma property "total" (quantidade*preco_unitario).
+2. Classe "SistemaPedidos": guarda os pedidos num banco SQLite em memória (cria a tabela na inicialização), com métodos "registrar(pedido)" (salva no banco) e "relatorio()" (devolve um DataFrame com o total vendido por produto, ordenado do maior pro menor, via pandas.read_sql_query).
+
+Registre os pedidos de "pedidos_novos", gere o relatório em "relatorio_final" e descubra o produto campeão em "produto_campeao".`,
+  starter:`import sqlite3
+import pandas as pd
+
+
+class Pedido:
+    def __init__(self, id, cliente, produto, quantidade, preco_unitario):
+        self.id = id
+        self.cliente = cliente
+        self.produto = produto
+        self.quantidade = quantidade
+        self.preco_unitario = preco_unitario
+
+    @property
+    def total(self):
+        # TODO: quantidade * preco_unitario
+        pass
+
+
+class SistemaPedidos:
+    def __init__(self):
+        self.conn = sqlite3.connect(":memory:")
+        self.conn.execute("""
+            CREATE TABLE pedidos (
+                id INTEGER PRIMARY KEY,
+                cliente TEXT,
+                produto TEXT,
+                quantidade INTEGER,
+                preco_unitario REAL
+            )
+        """)
+
+    def registrar(self, pedido):
+        # TODO: insira os dados do pedido na tabela pedidos (e dê commit)
+        pass
+
+    def relatorio(self):
+        # TODO: use pandas.read_sql_query para trazer o total vendido
+        # (quantidade*preco_unitario) por produto, ordenado do maior pro menor,
+        # como DataFrame com colunas 'produto' e 'total'
+        pass
+
+
+pedidos_novos = [
+    Pedido(1, "Ana", "Notebook", 1, 3200),
+    Pedido(2, "Bruno", "Mouse", 3, 45),
+    Pedido(3, "Carla", "Notebook", 1, 3200),
+    Pedido(4, "Diego", "Teclado", 2, 90),
+    Pedido(5, "Ana", "Mouse", 2, 45),
+]
+
+sistema = SistemaPedidos()
+for p in pedidos_novos:
+    sistema.registrar(p)
+
+relatorio_final = sistema.relatorio()
+produto_campeao = None  # TODO: nome do produto com maior total em relatorio_final
+`,
+  check:`_ok = True
+_msgs = []
+try:
+    if abs(pedidos_novos[0].total - 3200) > 0.01:
+        _ok = False
+        _msgs.append("a property 'total' do Pedido não está calculando quantidade * preco_unitario corretamente")
+except Exception as e:
+    _ok = False
+    _msgs.append(f"erro testando Pedido.total: {e}")
+
+try:
+    r = relatorio_final
+    cols = [c.lower() for c in r.columns]
+    col_produto = "produto" if "produto" in cols else r.columns[0]
+    col_total = [c for c in r.columns if c.lower() != "produto"][0]
+    obtido = {row[col_produto]: round(float(row[col_total]), 2) for _, row in r.iterrows()}
+    esperado = {"Notebook": 6400.0, "Mouse": 225.0, "Teclado": 180.0}
+    if obtido != esperado:
+        _ok = False
+        _msgs.append(f"relatorio_final deveria somar {esperado}, veio {obtido}")
+    else:
+        valores = list(r[col_total])
+        if valores != sorted(valores, reverse=True):
+            _ok = False
+            _msgs.append("relatorio_final deveria estar ordenado do maior total pro menor")
+except NameError:
+    _ok = False
+    _msgs.append("variável relatorio_final não foi definida")
+except Exception as e:
+    _ok = False
+    _msgs.append(f"erro checando relatorio_final: {e}")
+
+try:
+    if produto_campeao != "Notebook":
+        _ok = False
+        _msgs.append(f"produto_campeao deveria ser 'Notebook', veio {produto_campeao!r}")
+except NameError:
+    _ok = False
+    _msgs.append("variável produto_campeao não foi definida")
+
+{"ok": _ok, "message": "Tudo certo! 🎉 Sistema completo funcionando — POO + SQLite + Pandas juntos." if _ok else " | ".join(_msgs)}
+`,
+  otimizado:`import sqlite3
+import pandas as pd
+
+
+class Pedido:
+    def __init__(self, id, cliente, produto, quantidade, preco_unitario):
+        self.id = id
+        self.cliente = cliente
+        self.produto = produto
+        self.quantidade = quantidade
+        self.preco_unitario = preco_unitario
+
+    @property
+    def total(self):
+        return self.quantidade * self.preco_unitario
+
+
+class SistemaPedidos:
+    def __init__(self):
+        self.conn = sqlite3.connect(":memory:")
+        self.conn.execute("""
+            CREATE TABLE pedidos (
+                id INTEGER PRIMARY KEY,
+                cliente TEXT,
+                produto TEXT,
+                quantidade INTEGER,
+                preco_unitario REAL
+            )
+        """)
+
+    def registrar(self, pedido):
+        self.conn.execute(
+            "INSERT INTO pedidos VALUES (?, ?, ?, ?, ?)",
+            (pedido.id, pedido.cliente, pedido.produto, pedido.quantidade, pedido.preco_unitario),
+        )
+        self.conn.commit()
+
+    def relatorio(self):
+        return pd.read_sql_query("""
+            SELECT produto, SUM(quantidade * preco_unitario) AS total
+            FROM pedidos
+            GROUP BY produto
+            ORDER BY total DESC
+        """, self.conn)
+
+
+pedidos_novos = [
+    Pedido(1, "Ana", "Notebook", 1, 3200),
+    Pedido(2, "Bruno", "Mouse", 3, 45),
+    Pedido(3, "Carla", "Notebook", 1, 3200),
+    Pedido(4, "Diego", "Teclado", 2, 90),
+    Pedido(5, "Ana", "Mouse", 2, 45),
+]
+
+sistema = SistemaPedidos()
+for p in pedidos_novos:
+    sistema.registrar(p)
+
+relatorio_final = sistema.relatorio()
+produto_campeao = relatorio_final.loc[relatorio_final["total"].idxmax(), "produto"]
+`,
+  melhorias:[
+    "A soma (quantidade * preco_unitario) acontece dentro do próprio SQL — o banco faz a conta, o Python só recebe o resultado pronto",
+    "Cada classe tem uma responsabilidade clara: Pedido sabe seus dados, SistemaPedidos cuida da persistência e do relatório",
+    "idxmax() encontra o produto campeão sem iterar o DataFrame manualmente",
+    "Essa estrutura (POO + banco + pandas) aparece em sistemas reais de análise de dados"
+  ]
+}
+];
+
+/* ======================= ESTADO / PERSISTÊNCIA ======================= */
+const STORAGE_KEY = "praticapython_progress_v1";
+function loadState(){
+  try{
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {completed:[], code:{}};
+  }catch(e){ return {completed:[], code:{}}; }
+}
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+let state = loadState();
+
+/* ======================= PYODIDE ======================= */
+let pyodide = null;
+let pyReady = false;
+
+async function initPyodide(){
+  const statusEl = document.getElementById("status-pyodide");
+  try{
+    pyodide = await loadPyodide();
+    statusEl.innerHTML = '<span class="spinner"></span> Instalando pandas...';
+    await pyodide.loadPackage(["pandas"]);
+    try{
+      statusEl.innerHTML = '<span class="spinner"></span> Instalando sqlite3...';
+      await pyodide.loadPackage(["sqlite3"]);
+    }catch(e){ /* algumas builds já trazem sqlite3 embutido */ }
+    pyodide.setStdout({ batched: (msg) => { window.__stdout_buf.push(msg); } });
+    pyodide.setStderr({ batched: (msg) => { window.__stderr_buf.push(msg); } });
+    pyReady = true;
+    statusEl.innerHTML = '✅ Ambiente pronto';
+    atualizarBotoes();
+  }catch(e){
+    statusEl.innerHTML = '❌ Falha ao carregar (verifique sua internet e recarregue a página)';
+    console.error(e);
+  }
+}
+window.__stdout_buf = [];
+window.__stderr_buf = [];
+
+/* ======================= UI: SIDEBAR ======================= */
+const NIVEIS_ORDEM = ["Iniciante","Intermediário","Avançado","Profissional"];
+let currentExId = null;
+let editor = null;
+
+function renderSidebar(){
+  const sidebar = document.getElementById("sidebar");
+  sidebar.innerHTML = "";
+  NIVEIS_ORDEM.forEach(nivel => {
+    const exs = EXERCISES.filter(e => e.nivel === nivel);
+    if(exs.length === 0) return;
+    const group = document.createElement("div");
+    group.className = "nivel-group";
+    const header = document.createElement("div");
+    header.className = "nivel-header";
+    header.textContent = nivel;
+    group.appendChild(header);
+    exs.forEach(ex => {
+      const item = document.createElement("div");
+      item.className = "ex-item" + (ex.id === currentExId ? " active" : "");
+      const done = state.completed.includes(ex.id);
+      item.innerHTML = `<span class="check">${done ? "✅" : "⬜"}</span>
+        <span style="flex:1;">${ex.titulo}</span>
+        <span class="badge badge-${ex.nivel}">${ex.topico}</span>`;
+      item.onclick = () => selectExercise(ex.id);
+      group.appendChild(item);
+    });
+    sidebar.appendChild(group);
+  });
+  const total = EXERCISES.length;
+  document.getElementById("progresso-n").textContent = `${state.completed.length}/${total}`;
+}
+
+function atualizarBotoes(){
+  document.querySelectorAll(".need-pyodide").forEach(b => b.disabled = !pyReady);
+}
+
+/* ======================= MAIN PANEL ======================= */
+function selectExercise(id){
+  currentExId = id;
+  const ex = EXERCISES.find(e => e.id === id);
+  const main = document.getElementById("main");
+
+  const savedCode = (state.code[id] !== undefined) ? state.code[id] : ex.starter;
+  const isStructural = ex.mode === "structural";
+
+  main.innerHTML = `
+    <div id="ex-header">
+      <div class="badges">
+        <span class="badge badge-${ex.nivel}">${ex.nivel}</span>
+        <span class="badge badge-${ex.nivel}">${ex.topico}</span>
+      </div>
+      <h2>${ex.titulo}</h2>
+    </div>
+
+    <div class="card" id="caso">
+      <h3>📋 Caso</h3>
+      <p>${ex.caso.replace(/\n\n/g,"</p><p>").replace(/\n/g,"<br>")}</p>
+    </div>
+
+    <div class="card">
+      <h3>💻 Seu código</h3>
+      ${isStructural ? '<div class="structural-badge">⚠️ Exercício conceitual — verificação estrutural, sem execução de janela</div>' : ''}
+      <textarea id="code-editor"></textarea>
+      <div class="editor-actions">
+        <button class="btn-primary need-pyodide" id="btn-run" ${isStructural ? 'style="display:none;"' : ''}>▶ Executar</button>
+        <button class="btn-check need-pyodide" id="btn-check">${isStructural ? '🔍 Analisar estrutura' : '✓ Verificar solução'}</button>
+        <button class="btn-ghost btn-small" id="btn-restaurar">↺ Restaurar código inicial</button>
+      </div>
+      <div id="saida-console"></div>
+      <div id="feedback"></div>
+    </div>
+
+    <div class="card" id="otimizado">
+      <h3>🚀 Como deixar mais produtivo</h3>
+      <pre id="otimizado-code"></pre>
+      <ul id="otimizado-melhorias"></ul>
+    </div>
+  `;
+
+  if(editor) editor.toTextArea();
+  editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
+    mode:"python", lineNumbers:true, indentUnit:4, tabSize:4, indentWithTabs:false,
+    matchBrackets:true, theme:"default"
+  });
+  editor.setValue(savedCode);
+  editor.on("change", debounce(() => {
+    state.code[id] = editor.getValue();
+    saveState();
+  }, 500));
+
+  document.getElementById("btn-restaurar").onclick = () => {
+    if(confirm("Restaurar o código inicial deste exercício? Seu código atual será perdido.")){
+      editor.setValue(ex.starter);
+    }
+  };
+  if(!isStructural){
+    document.getElementById("btn-run").onclick = () => rodarSimples(ex);
+  }
+  document.getElementById("btn-check").onclick = () => verificarSolucao(ex);
+
+  if(state.completed.includes(id)){
+    mostrarOtimizado(ex);
+  }
+
+  atualizarBotoes();
+  renderSidebar();
+}
+
+function debounce(fn, ms){
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+
+/* ======================= EXECUÇÃO ======================= */
+function novoNamespace(){
+  return pyodide.globals.get("dict")();
+}
+
+function formatarSaida(){
+  let out = window.__stdout_buf.join("\n");
+  let err = window.__stderr_buf.join("\n");
+  return {out, err};
+}
+
+async function rodarSimples(ex){
+  if(!pyReady) return;
+  const code = editor.getValue();
+  window.__stdout_buf = [];
+  window.__stderr_buf = [];
+  const console_ = document.getElementById("saida-console");
+  const feedback = document.getElementById("feedback");
+  feedback.className = "";
+  console_.className = "";
+  const ns = novoNamespace();
+  try{
+    const resultado = pyodide.runPython(code, {globals: ns});
+    const {out} = formatarSaida();
+    let texto = out;
+    if(resultado !== undefined && resultado !== null){
+      try{
+        const repr = pyodide.runPython("repr(_r)", {globals: (() => { ns.set("_r", resultado); return ns; })()});
+        texto += (texto ? "\n" : "") + ">>> " + repr;
+      }catch(e){}
+    }
+    console_.textContent = texto || "(código executado sem saída — use print() para ver valores)";
+  }catch(e){
+    const {out} = formatarSaida();
+    console_.className = "erro";
+    console_.textContent = (out ? out + "\n" : "") + e.message;
+    mostrarErro(e.message);
+  }finally{
+    ns.destroy();
+  }
+}
+
+function mostrarErro(msg){
+  const feedback = document.getElementById("feedback");
+  feedback.className = "fail";
+  const linhaFinal = msg.trim().split("\n").pop();
+  feedback.innerHTML = `<b>❌ Deu erro:</b> ${escapeHtml(linhaFinal)}<div class="dica">💡 ${errorHint(msg)}</div>`;
+}
+
+function escapeHtml(s){
+  const d = document.createElement("div");
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function errorHint(msg){
+  const rules = [
+    [/IndentationError/, "Erro de indentação: confira se todas as linhas do mesmo bloco usam o mesmo número de espaços (Python é sensível a isso)."],
+    [/SyntaxError/, "Erro de sintaxe: falta algum ':' no final de um if/for/def/class, ou um parêntese/aspas não foi fechado."],
+    [/ModuleNotFoundError|ImportError/, "Módulo não disponível neste ambiente de prática. Aqui temos a biblioteca padrão do Python + pandas + sqlite3 (tkinter não executa no navegador)."],
+    [/NameError/, "Variável ou função usada antes de ser criada — confira se o nome está escrito exatamente igual em todo o código (maiúsculas/minúsculas importam)."],
+    [/KeyError/, "Você tentou acessar uma chave/coluna que não existe. Confira o nome exato (inclusive acentos e maiúsculas)."],
+    [/AttributeError/, "Você chamou um método/atributo que esse tipo de objeto não tem. Confira se a variável é do tipo que você imagina."],
+    [/TypeError/, "Tipos incompatíveis nessa operação — confira se não está misturando texto com número, por exemplo."],
+    [/IndexError/, "Você tentou acessar uma posição que não existe numa lista/sequência."],
+    [/ZeroDivisionError/, "Divisão por zero — confira se o denominador pode ser 0 antes de dividir."],
+    [/OperationalError/, "Erro de SQL: confira o nome da tabela/coluna e a sintaxe do comando."],
+  ];
+  for(const [re, hint] of rules) if(re.test(msg)) return hint;
+  return "Leia a última linha do erro acima — ela costuma dizer exatamente o que aconteceu.";
+}
+
+async function verificarSolucao(ex){
+  if(ex.mode === "structural"){
+    const res = checkStructural(ex, editor.getValue());
+    handleResultado(ex, res);
+    return;
+  }
+  if(!pyReady) return;
+  const code = editor.getValue();
+  window.__stdout_buf = [];
+  window.__stderr_buf = [];
+  const console_ = document.getElementById("saida-console");
+  console_.className = "";
+  const ns = novoNamespace();
+  let resultado;
+  try{
+    pyodide.runPython(code, {globals: ns});
+  }catch(e){
+    const {out} = formatarSaida();
+    console_.className = "erro";
+    console_.textContent = (out ? out + "\n" : "") + e.message;
+    mostrarErro(e.message);
+    ns.destroy();
+    return;
+  }
+  try{
+    const proxy = pyodide.runPython(ex.check, {globals: ns});
+    resultado = proxy && proxy.toJs ? proxy.toJs({dict_converter: Object.fromEntries}) : proxy;
+    if(proxy && proxy.destroy) proxy.destroy();
+  }catch(checkErr){
+    resultado = {ok:false, message:"Não foi possível validar automaticamente — provavelmente falta alguma variável pedida no enunciado."};
+  }
+  const {out} = formatarSaida();
+  console_.textContent = out || "(sem saída de print — tudo certo, é só análise de variáveis)";
+  ns.destroy();
+  handleResultado(ex, resultado);
+}
+
+function checkStructural(ex, code){
+  const faltando = [];
+  ex.structuralRules.forEach(rule => {
+    if(!rule.re.test(code)) faltando.push(rule.desc);
+  });
+  if(faltando.length === 0){
+    return {ok:true, message:"Estrutura completa! 🎉 (lembre-se: copie o código e rode localmente no seu Python pra ver a janela abrindo de verdade)"};
+  }
+  return {ok:false, message:"Ainda falta: " + faltando.join(" | ")};
+}
+
+function handleResultado(ex, resultado){
+  const feedback = document.getElementById("feedback");
+  if(resultado.ok){
+    feedback.className = "ok";
+    feedback.innerHTML = `<b>✅ ${escapeHtml(resultado.message)}</b>`;
+    if(!state.completed.includes(ex.id)){
+      state.completed.push(ex.id);
+      saveState();
+      renderSidebar();
+    }
+    mostrarOtimizado(ex);
+  }else{
+    feedback.className = "fail";
+    feedback.innerHTML = `<b>Quase lá:</b> ${escapeHtml(resultado.message)}`;
+  }
+}
+
+function mostrarOtimizado(ex){
+  const box = document.getElementById("otimizado");
+  const codeEl = document.getElementById("otimizado-code");
+  const listEl = document.getElementById("otimizado-melhorias");
+  const codigo = ex.otimizadoReal || ex.otimizado;
+  codeEl.textContent = codigo;
+  listEl.innerHTML = "";
+  (ex.melhorias || []).forEach(m => {
+    const li = document.createElement("li");
+    li.textContent = m;
+    listEl.appendChild(li);
+  });
+  box.classList.add("show");
+}
+
+/* ======================= NOVIDADES DA WEB ======================= */
+const LIBS_MONITORADAS = ["pandas", "numpy", "scikit-learn"];
+
+async function buscarNovidades(){
+  const cont = document.getElementById("novidades-conteudo");
+  cont.innerHTML = "Buscando...";
+  try{
+    const resultados = await Promise.all(LIBS_MONITORADAS.map(async lib => {
+      const resp = await fetch(`https://pypi.org/pypi/${lib}/json`);
+      if(!resp.ok) throw new Error("falha " + lib);
+      const data = await resp.json();
+      return {
+        nome: lib,
+        versao: data.info.version,
+        resumo: (data.info.summary || "").slice(0,120),
+        url: data.info.project_url || data.info.package_url
+      };
+    }));
+    cont.innerHTML = resultados.map(r => `
+      <div class="novidade-item">
+        <div>${r.nome} — <span class="ver">v${r.versao}</span></div>
+        <div style="color:var(--muted); margin-top:4px;">${escapeHtml(r.resumo)}</div>
+        <a href="${r.url}" target="_blank" rel="noopener" style="font-size:12px;">ver na PyPI ↗</a>
+      </div>
+    `).join("");
+  }catch(e){
+    cont.innerHTML = "Não foi possível buscar agora (verifique sua conexão com a internet). Você também pode conferir manualmente em pypi.org.";
+  }
+}
+
+/* ======================= INIT ======================= */
+document.getElementById("btn-novidades").onclick = () => {
+  document.getElementById("novidades-panel").classList.add("show");
+  document.getElementById("overlay").classList.add("show");
+};
+document.getElementById("overlay").onclick = () => {
+  document.getElementById("novidades-panel").classList.remove("show");
+  document.getElementById("overlay").classList.remove("show");
+};
+document.getElementById("btn-buscar-agora").onclick = buscarNovidades;
+document.getElementById("btn-reset").onclick = () => {
+  if(confirm("Apagar todo o progresso salvo neste navegador?")){
+    localStorage.removeItem(STORAGE_KEY);
+    state = {completed:[], code:{}};
+    renderSidebar();
+    location.reload();
+  }
+};
+
+renderSidebar();
+initPyodide();
+</script>
+</body>
+</html>
