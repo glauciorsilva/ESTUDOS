@@ -109,3 +109,23 @@ A `apiKey` do Firebase web é pública por design; a segurança vem das regras a
 Ao abrir, uma tela de entrada mostra um boneco de óculos escuros oferecendo duas pílulas:
 **vermelha** = entrar com Google (progresso na nuvem) e **azul** = continuar sem login.
 O app inteiro usa chuva de código verde, editor com tema próprio e fonte monoespaçada.
+
+## 📘 Apostila (PDF) e aba "Apostila"
+
+- **PDF:** [`apostila/Apostila_Dados_com_Python.pdf`](apostila/Apostila_Dados_com_Python.pdf) — teoria, receitas e
+  exemplos (diferentes dos do ambiente) de Python básico, POO, pandas, SQLite/SQL, Tkinter e projeto integrador,
+  com exemplo resolvido, armadilhas, cola rápida, exercícios e gabarito comentado. O botão
+  **Baixar apostila (PDF)** do app baixa este arquivo.
+- **Aba Apostila:** os 16 exercícios do PDF rodam no próprio app, com correção automática. O código e o progresso
+  são salvos no banco (Firestore) junto com os demais.
+- **Fonte única:** os exercícios ficam em `apostila/exercicios.py` e alimentam o PDF **e** a aba do app.
+
+Para regenerar tudo depois de editar o conteúdo:
+
+```bash
+cd apostila
+pip install -r requirements.txt
+python3 testar_exercicios.py   # solução passa na verificação e o starter não passa
+python3 gerar_js.py            # atualiza ../apostila-exercicios.js (aba do app)
+python3 build_pdf.py           # atualiza o PDF (saídas dos exemplos vêm da execução real)
+```
