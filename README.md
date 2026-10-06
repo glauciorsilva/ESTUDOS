@@ -88,3 +88,27 @@ Detalhes do schema, endpoints e consultas SQL de exemplo (inclusive sobre seu pr
 ## Licença
 
 Uso pessoal / educacional.
+
+## ☁️ Nuvem (Firebase) — funciona na Vercel
+
+O `index.html` tem login com Google e salva o progresso no Firestore (projeto `estudogrcs`),
+em `usuarios/{uid}` (`completed`, `code`) e `usuarios/{uid}/tentativas`.
+
+Configuração única no [console do Firebase](https://console.firebase.google.com/project/estudogrcs):
+
+1. **Authentication → Sign-in method** → ativar **Google**.
+2. **Authentication → Settings → Authorized domains** → adicionar `estudogr.vercel.app` (e `localhost`).
+3. **Firestore Database** → criar o banco e usar estas regras:
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /usuarios/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
+```
+
+A `apiKey` do Firebase web é pública por design; a segurança vem das regras acima.

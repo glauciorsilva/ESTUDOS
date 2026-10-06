@@ -60,6 +60,8 @@ button:disabled{opacity:.45; cursor:not-allowed;}
   font-size:12.5px; color:rgba(255,255,255,.7); cursor:default;
 }
 #status-backend.online{ color:#baffd6; font-weight:700; }
+#status-nuvem{ font-size:12.5px; color:rgba(255,255,255,.7); }
+#status-nuvem.online{ color:#baffd6; font-weight:700; }
 .spinner{
   width:13px; height:13px; border-radius:50%;
   border:2px solid rgba(255,255,255,.35); border-top-color:#fff;
@@ -168,6 +170,8 @@ footer a{color:var(--accent2); cursor:pointer; font-weight:600;}
     <span id="progresso">Progresso: <b id="progresso-n">0/16</b></span>
     <span id="status-pyodide"><span class="spinner"></span> Carregando ambiente Python...</span>
     <span id="status-backend" title="Backend opcional (backend/app.py) para salvar seu progresso num banco SQLite real">🗄️ Banco: offline</span>
+    <span id="status-nuvem" title="Entre com Google para salvar seu progresso na nuvem (Firebase)">☁️ Nuvem: desconectada</span>
+    <button class="btn-ghost btn-small" id="btn-login">🔐 Entrar com Google</button>
     <button class="btn-ghost btn-small" id="btn-novidades">🌐 Buscar novidades</button>
   </div>
 </header>
@@ -1559,6 +1563,7 @@ async function carregarDoBackend(){
 }
 
 function syncProgressoBackend(exercicioId, concluido, codigo){
+  if(window.nuvem) window.nuvem.salvar(state);
   if(!backendOnline) return;
   fetch(`${API_BASE}/api/progresso`, {
     method: "POST",
@@ -1568,6 +1573,7 @@ function syncProgressoBackend(exercicioId, concluido, codigo){
 }
 
 function registrarTentativaBackend(exercicioId, sucesso, mensagem){
+  if(window.nuvem) window.nuvem.tentativa(exercicioId, sucesso, mensagem);
   if(!backendOnline) return;
   fetch(`${API_BASE}/api/tentativas`, {
     method: "POST",
@@ -1924,6 +1930,93 @@ document.getElementById("btn-reset").onclick = () => {
 renderSidebar();
 initPyodide();
 checarBackend();
+</script>
+<script type="module">
+/* ======================= FIREBASE (nuvem) =======================
+   Login com Google + Firestore: usuarios/{uid} guarda {completed, code}
+   e usuarios/{uid}/tentativas guarda o histórico. Funciona na Vercel. */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, addDoc, collection, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBWZt2BEvYRlrgPg0k4JeNA2MJwJ2h_JuA",
+  authDomain: "estudogrcs.firebaseapp.com",
+  projectId: "estudogrcs",
+  storageBucket: "estudogrcs.firebasestorage.app",
+  messagingSenderId: "845759097570",
+  appId: "1:845759097570:web:7a5ff64b6bb63da2efccbb",
+  measurementId: "G-KW5YT0K08M"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const statusEl = document.getElementById("status-nuvem");
+const btn = document.getElementById("btn-login");
+let user = null, timer = null;
+
+function setStatus(txt, online){
+  statusEl.textContent = txt;
+  statusEl.classList.toggle("online", !!online);
+}
+
+async function carregar(){
+  try{
+    const snap = await getDoc(doc(db, "usuarios", user.uid));
+    if(snap.exists()){
+      const d = snap.data();
+      state.completed = [...new Set([...(state.completed||[]), ...(d.completed||[])])];
+      state.code = {...(d.code||{}), ...state.code};
+      saveState();
+      renderSidebar();
+    }
+    await salvarAgora();
+    setStatus("☁️ Nuvem: " + (user.displayName || user.email), true);
+  }catch(e){
+    console.error(e);
+    setStatus("☁️ Nuvem: erro (veja regras do Firestore)", false);
+  }
+}
+
+async function salvarAgora(){
+  if(!user) return;
+  await setDoc(doc(db, "usuarios", user.uid),
+    {completed: state.completed, code: state.code, atualizadoEm: serverTimestamp()},
+    {merge: true});
+}
+
+window.nuvem = {
+  salvar(){
+    if(!user) return;
+    clearTimeout(timer);
+    timer = setTimeout(() => salvarAgora().catch(console.error), 800);
+  },
+  tentativa(exercicioId, sucesso, mensagem){
+    if(!user) return;
+    addDoc(collection(db, "usuarios", user.uid, "tentativas"),
+      {exercicioId, sucesso, mensagem: String(mensagem||"").slice(0,500), em: serverTimestamp()})
+      .catch(console.error);
+  }
+};
+
+btn.addEventListener("click", async () => {
+  try{
+    if(user){ await signOut(auth); }
+    else{ await signInWithPopup(auth, new GoogleAuthProvider()); }
+  }catch(e){
+    console.error(e);
+    setStatus("☁️ Nuvem: login falhou", false);
+  }
+});
+
+onAuthStateChanged(auth, u => {
+  user = u;
+  if(u){ btn.textContent = "🚪 Sair"; carregar(); }
+  else{ btn.textContent = "🔐 Entrar com Google"; setStatus("☁️ Nuvem: desconectada", false); }
+});
 </script>
 </body>
 </html>
