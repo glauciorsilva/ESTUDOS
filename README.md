@@ -98,17 +98,14 @@ Configuração única no [console do Firebase](https://console.firebase.google.c
 
 1. **Authentication → Sign-in method** → ativar **Google**.
 2. **Authentication → Settings → Authorized domains** → adicionar `estudogr.vercel.app` (e `localhost`).
-3. **Firestore Database** → criar o banco e usar estas regras:
-
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /usuarios/{uid}/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
-    }
-  }
-}
-```
+3. **Firestore Database** → criar o banco e publicar as regras do arquivo [`firestore.rules`](firestore.rules)
+   (cole em *Firestore → Rules → Publish*, ou rode `firebase deploy --only firestore:rules`).
+   Cada usuário só acessa `usuarios/{uid}`; o histórico em `tentativas` só aceita criação.
 
 A `apiKey` do Firebase web é pública por design; a segurança vem das regras acima.
+
+## 🕶️ Tema Matrix
+
+Ao abrir, uma tela de entrada mostra um boneco de óculos escuros oferecendo duas pílulas:
+**vermelha** = entrar com Google (progresso na nuvem) e **azul** = continuar sem login.
+O app inteiro usa chuva de código verde, editor com tema próprio e fonte monoespaçada.

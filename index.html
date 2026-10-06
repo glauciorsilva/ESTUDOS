@@ -160,9 +160,170 @@ footer a{color:var(--accent2); cursor:pointer; font-weight:600;}
 #welcome{max-width:640px; margin:60px auto; text-align:center;}
 #welcome h2{font-size:26px; background:linear-gradient(120deg, var(--accent), var(--accent2)); -webkit-background-clip:text; background-clip:text; color:transparent;}
 #welcome p{color:var(--muted); line-height:1.6;}
+
+/* ======================= TEMA MATRIX ======================= */
+:root{
+  --bg:#000; --bg2:rgba(0,14,4,.86); --panel:rgba(0,22,8,.88); --border:#0b6b24;
+  --text:#c9ffd6; --muted:#5fc57d; --accent:#00ff41; --accent2:#00e03a;
+  --green:#00ff41; --green-text:#001a07; --blue:#2de2e6; --blue-text:#001a1a;
+  --purple:#9dff00; --orange:#ffb000; --red:#ff2a2a; --console-bg:#000a02;
+  --glow:0 0 12px rgba(0,255,65,.45);
+}
+body{font-family:'Fira Code','Cascadia Code',Consolas,'Courier New',monospace; background:#000;}
+#matrix-rain{position:fixed; inset:0; width:100%; height:100%; z-index:0; opacity:.30; pointer-events:none;}
+header,#layout,footer{position:relative; z-index:1;}
+header{
+  background:linear-gradient(180deg, rgba(0,30,8,.95), rgba(0,10,3,.95));
+  border-bottom:1px solid var(--accent); box-shadow:0 2px 22px rgba(0,255,65,.25);
+}
+header h1{color:var(--accent); text-shadow:var(--glow); letter-spacing:.04em;}
+#progresso,#progresso b,#status-pyodide{color:var(--text);}
+#status-backend,#status-nuvem{color:var(--muted);}
+#status-backend.online,#status-nuvem.online{color:var(--accent); text-shadow:var(--glow);}
+.spinner{border-color:rgba(0,255,65,.3); border-top-color:var(--accent);}
+button{font-family:inherit;}
+.btn-primary,.btn-check{background:var(--accent); color:#001a07; box-shadow:var(--glow);}
+.btn-ghost{background:rgba(0,255,65,.08); color:var(--accent); border:1px solid var(--accent);}
+.btn-ghost:hover{background:rgba(0,255,65,.2);}
+.ex-item.active{background:var(--accent); color:#001a07; box-shadow:var(--glow);}
+.ex-item:hover{background:rgba(0,255,65,.1);}
+.badge-Avançado{color:#001a07;} .badge-Profissional{color:#1a1000;}
+.card{border-left:3px solid var(--accent); box-shadow:0 0 18px rgba(0,255,65,.08);}
+.card h3,#novidades-panel h3,.novidade-item .ver,footer a{color:var(--accent);}
+#welcome h2{background:none; color:var(--accent); text-shadow:var(--glow);}
+#welcome h2::after{content:"_"; animation:blink 1s steps(1) infinite;}
+@keyframes blink{50%{opacity:0;}}
+#feedback.ok{background:#001f0a; color:var(--accent); box-shadow:0 0 18px rgba(0,255,65,.3);}
+#feedback.fail{background:#2a0505; color:#ff8a8a;}
+#saida-console{color:var(--accent);}
+#novidades-panel{border-left:3px solid var(--accent);}
+.CodeMirror-focused{border-color:var(--accent);}
+.cm-s-matrix.CodeMirror{background:#000d03; color:#b6ffc6;}
+.cm-s-matrix .CodeMirror-gutters{background:#00170a; border-right:1px solid var(--border);}
+.cm-s-matrix .CodeMirror-linenumber{color:#2f8f4a;}
+.cm-s-matrix .CodeMirror-cursor{border-left:2px solid var(--accent);}
+.cm-s-matrix .CodeMirror-selected{background:rgba(0,255,65,.22);}
+.cm-s-matrix .cm-keyword{color:#2de2e6; font-weight:bold;}
+.cm-s-matrix .cm-string{color:#e6ff6b;}
+.cm-s-matrix .cm-number{color:#ffb000;}
+.cm-s-matrix .cm-comment{color:#3d8a55; font-style:italic;}
+.cm-s-matrix .cm-def,.cm-s-matrix .cm-variable-2{color:#9dff00;}
+.cm-s-matrix .cm-builtin{color:#7dffb2;}
+.cm-s-matrix .cm-operator{color:#00ff41;}
+::-webkit-scrollbar{width:9px;height:9px;} ::-webkit-scrollbar-thumb{background:#0b6b24; border-radius:6px;}
+
+/* ======================= TELA DE ENTRADA (MORPHEU) ======================= */
+#intro{
+  position:fixed; inset:0; z-index:100; display:flex; align-items:center; justify-content:center;
+  background:radial-gradient(ellipse at center, rgba(0,20,6,.78) 0%, rgba(0,0,0,.94) 75%);
+  padding:16px; overflow-y:auto; transition:opacity .6s, visibility .6s;
+}
+#intro.saindo{opacity:0; visibility:hidden;}
+#intro.oculto{display:none;}
+.intro-box{
+  width:min(560px,100%); text-align:center; padding:22px 22px 26px;
+  border:1px solid var(--accent); border-radius:14px; background:rgba(0,10,3,.82);
+  box-shadow:0 0 40px rgba(0,255,65,.25), inset 0 0 30px rgba(0,255,65,.06);
+}
+.intro-box h1{margin:0 0 4px; font-size:22px; color:var(--accent); text-shadow:var(--glow); letter-spacing:.06em;}
+.intro-box .sub{color:var(--muted); font-size:13px; margin:0 0 6px;}
+#morpheus{width:min(300px,70vw); height:auto; display:block; margin:0 auto; animation:flutuar 3.2s ease-in-out infinite;}
+@keyframes flutuar{50%{transform:translateY(-7px);}}
+.pill-glow-r{animation:pulso-r 1.8s ease-in-out infinite;}
+.pill-glow-b{animation:pulso-b 1.8s ease-in-out infinite .9s;}
+@keyframes pulso-r{50%{filter:drop-shadow(0 0 9px #ff2a2a);}}
+@keyframes pulso-b{50%{filter:drop-shadow(0 0 9px #2d7bff);}}
+#intro-fala{min-height:3.2em; margin:10px 0 14px; color:var(--text); font-size:14px; line-height:1.55;}
+.pilulas{display:flex; gap:12px; justify-content:center; flex-wrap:wrap;}
+.pilula{
+  flex:1 1 200px; padding:12px 14px; border-radius:10px; font-size:13px; line-height:1.4;
+  border:2px solid; background:#000; color:#fff; text-align:center;
+}
+.pilula b{display:block; font-size:14px; margin-bottom:3px;}
+.pilula small{opacity:.8; font-weight:400;}
+.pilula.vermelha{border-color:#ff2a2a; box-shadow:0 0 14px rgba(255,42,42,.45); color:#ffb3b3;}
+.pilula.azul{border-color:#2d7bff; box-shadow:0 0 14px rgba(45,123,255,.45); color:#b9d3ff;}
+#intro-erro{color:#ff8a8a; font-size:12px; min-height:1.2em; margin-top:10px;}
+@media (max-width:760px){
+  header{flex-wrap:wrap; gap:8px;} .header-right{flex-wrap:wrap;}
+  #layout{flex-direction:column;} #sidebar{width:100%; max-height:200px;}
+  #main{padding:16px;}
+}
 </style>
 </head>
 <body>
+
+<canvas id="matrix-rain"></canvas>
+
+<div id="intro" role="dialog" aria-label="Tela de entrada">
+  <div class="intro-box">
+    <h1>ESTUDO · GR</h1>
+    <p class="sub">Python, dados e bancos — sem sair da Matrix</p>
+    <svg id="morpheus" viewBox="0 0 320 350" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Boneco de óculos escuros e casaco preto, oferecendo uma pílula vermelha e uma azul">
+      <defs>
+        <radialGradient id="g-pele" cx="40%" cy="30%" r="75%"><stop offset="0" stop-color="#9a6238"/><stop offset="1" stop-color="#5b3419"/></radialGradient>
+        <linearGradient id="g-casaco" x1="0" x2="1"><stop offset="0" stop-color="#050505"/><stop offset=".5" stop-color="#1b1b1b"/><stop offset="1" stop-color="#050505"/></linearGradient>
+        <linearGradient id="g-base" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#0d3d1a"/><stop offset="1" stop-color="#021a09"/></linearGradient>
+        <linearGradient id="g-red" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#ff7070"/><stop offset=".55" stop-color="#e00d0d"/><stop offset="1" stop-color="#8a0000"/></linearGradient>
+        <linearGradient id="g-blue" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#7fb0ff"/><stop offset=".55" stop-color="#1f5cff"/><stop offset="1" stop-color="#0a2a8a"/></linearGradient>
+      </defs>
+      <!-- base de boneco -->
+      <ellipse cx="160" cy="330" rx="108" ry="16" fill="url(#g-base)" stroke="#00ff41" stroke-opacity=".6"/>
+      <ellipse cx="160" cy="324" rx="90" ry="10" fill="#00ff41" fill-opacity=".14"/>
+      <!-- pernas -->
+      <rect x="121" y="262" width="34" height="58" rx="14" fill="#0a0a0a"/>
+      <rect x="165" y="262" width="34" height="58" rx="14" fill="#0a0a0a"/>
+      <ellipse cx="136" cy="321" rx="23" ry="9" fill="#000"/><ellipse cx="184" cy="321" rx="23" ry="9" fill="#000"/>
+      <!-- braços (mangas) esticados -->
+      <path d="M104 176 Q66 190 50 226" stroke="#0a0a0a" stroke-width="30" stroke-linecap="round" fill="none"/>
+      <path d="M216 176 Q254 190 270 226" stroke="#0a0a0a" stroke-width="30" stroke-linecap="round" fill="none"/>
+      <path d="M104 176 Q68 188 52 222" stroke="#262626" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <path d="M216 176 Q252 188 268 222" stroke="#262626" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <!-- casaco -->
+      <path d="M100 168 Q160 146 220 168 L238 278 Q160 296 82 278 Z" fill="url(#g-casaco)"/>
+      <path d="M160 160 L160 284" stroke="#2c2c2c" stroke-width="2"/>
+      <path d="M128 160 L160 214 L192 160" fill="#161616" stroke="#2c2c2c" stroke-width="2"/>
+      <path d="M96 170 Q160 140 224 170" stroke="#3a3a3a" stroke-width="3" fill="none"/>
+      <circle cx="150" cy="236" r="3" fill="#333"/><circle cx="150" cy="258" r="3" fill="#333"/>
+      <!-- pescoço -->
+      <rect x="143" y="138" width="34" height="26" rx="10" fill="#5b3419"/>
+      <!-- cabeça de boneco -->
+      <ellipse cx="160" cy="90" rx="58" ry="56" fill="url(#g-pele)"/>
+      <circle cx="102" cy="94" r="11" fill="#6e4222"/><circle cx="218" cy="94" r="11" fill="#6e4222"/>
+      <ellipse cx="136" cy="55" rx="22" ry="12" fill="#fff" fill-opacity=".16"/>
+      <!-- óculos escuros -->
+      <rect x="112" y="76" width="46" height="26" rx="12" fill="#050505" stroke="#2b2b2b" stroke-width="2"/>
+      <rect x="162" y="76" width="46" height="26" rx="12" fill="#050505" stroke="#2b2b2b" stroke-width="2"/>
+      <path d="M158 87 L162 87" stroke="#2b2b2b" stroke-width="3"/>
+      <path d="M120 82 L134 80" stroke="#00ff41" stroke-opacity=".7" stroke-width="3" stroke-linecap="round"/>
+      <path d="M170 82 L184 80" stroke="#00ff41" stroke-opacity=".7" stroke-width="3" stroke-linecap="round"/>
+      <!-- sobrancelhas, nariz e sorriso -->
+      <path d="M116 68 Q135 60 152 68" stroke="#2a1608" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <path d="M168 68 Q185 60 204 68" stroke="#2a1608" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <path d="M156 108 Q160 114 164 108" stroke="#3b200d" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M138 124 Q160 138 182 124" stroke="#2a1608" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <!-- mãos abertas -->
+      <circle cx="50" cy="232" r="16" fill="url(#g-pele)"/>
+      <circle cx="270" cy="232" r="16" fill="url(#g-pele)"/>
+      <!-- pílula vermelha (esquerda) -->
+      <g class="pill-glow-r" transform="translate(50 206) rotate(-24)">
+        <rect x="-24" y="-11" width="48" height="22" rx="11" fill="url(#g-red)" stroke="#5a0000"/>
+        <rect x="-18" y="-8" width="22" height="5" rx="2.5" fill="#fff" fill-opacity=".45"/>
+      </g>
+      <!-- pílula azul (direita) -->
+      <g class="pill-glow-b" transform="translate(270 206) rotate(24)">
+        <rect x="-24" y="-11" width="48" height="22" rx="11" fill="url(#g-blue)" stroke="#00155a"/>
+        <rect x="-18" y="-8" width="22" height="5" rx="2.5" fill="#fff" fill-opacity=".45"/>
+      </g>
+    </svg>
+    <div id="intro-fala"></div>
+    <div class="pilulas">
+      <button class="pilula vermelha" id="pilula-vermelha"><b>🔴 Pílula vermelha</b>Entrar com Google<br><small>salva seu progresso na nuvem</small></button>
+      <button class="pilula azul" id="pilula-azul"><b>🔵 Pílula azul</b>Continuar sem login<br><small>progresso só neste navegador</small></button>
+    </div>
+    <div id="intro-erro"></div>
+  </div>
+</div>
 
 <header>
   <h1><span class="emoji">🐍</span> Prática Python para Dados</h1>
@@ -1692,7 +1853,7 @@ function selectExercise(id){
   if(editor) editor.toTextArea();
   editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
     mode:"python", lineNumbers:true, indentUnit:4, tabSize:4, indentWithTabs:false,
-    matchBrackets:true, theme:"default"
+    matchBrackets:true, theme:"matrix"
   });
   editor.setValue(savedCode);
   editor.on("change", debounce(() => {
@@ -1931,6 +2092,55 @@ renderSidebar();
 initPyodide();
 checarBackend();
 </script>
+
+<script>
+/* ======================= CHUVA DE CÓDIGO (Matrix) ======================= */
+(function(){
+  const c = document.getElementById("matrix-rain"), ctx = c.getContext("2d");
+  const chars = "アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789{}[]<>=+*/#$%&PYTHONSQL";
+  const tam = 16; let cols, gotas;
+  function ajustar(){
+    c.width = innerWidth; c.height = innerHeight;
+    cols = Math.ceil(c.width / tam);
+    gotas = Array.from({length: cols}, () => Math.random() * -50);
+  }
+  ajustar(); addEventListener("resize", ajustar);
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches){ ctx.fillStyle="#000"; ctx.fillRect(0,0,c.width,c.height); return; }
+  setInterval(() => {
+    ctx.fillStyle = "rgba(0,0,0,.08)"; ctx.fillRect(0,0,c.width,c.height);
+    ctx.font = tam + "px monospace";
+    for(let i=0;i<cols;i++){
+      const ch = chars[Math.floor(Math.random()*chars.length)];
+      ctx.fillStyle = Math.random() > .975 ? "#d6ffe0" : "#00ff41";
+      ctx.fillText(ch, i*tam, gotas[i]*tam);
+      if(gotas[i]*tam > c.height && Math.random() > .975) gotas[i] = 0;
+      gotas[i]++;
+    }
+  }, 50);
+})();
+
+/* ======================= TELA DE ENTRADA ======================= */
+(function(){
+  const intro = document.getElementById("intro");
+  const fala = document.getElementById("intro-fala");
+  const texto = "Bem-vindo(a) ao mundo real dos dados. Escolha: a pílula vermelha salva seu progresso na nuvem; a azul segue só neste navegador.";
+  let i = 0;
+  (function digitar(){
+    if(i <= texto.length){ fala.textContent = texto.slice(0, i++); setTimeout(digitar, 22); }
+  })();
+  window.fecharIntro = function(){
+    if(intro.classList.contains("oculto")) return;
+    intro.classList.add("saindo");
+    setTimeout(() => intro.classList.add("oculto"), 650);
+  };
+  window.erroIntro = msg => { document.getElementById("intro-erro").textContent = msg; };
+  document.getElementById("pilula-azul").onclick = () => window.fecharIntro();
+  document.getElementById("pilula-vermelha").onclick = () => {
+    window.erroIntro("");
+    document.getElementById("btn-login").click();
+  };
+})();
+</script>
 <script type="module">
 /* ======================= FIREBASE (nuvem) =======================
    Login com Google + Firestore: usuarios/{uid} guarda {completed, code}
@@ -2009,12 +2219,13 @@ btn.addEventListener("click", async () => {
   }catch(e){
     console.error(e);
     setStatus("☁️ Nuvem: login falhou", false);
+    if(window.erroIntro) window.erroIntro("Login não concluído (" + (e.code || "erro") + "). Tente de novo ou escolha a pílula azul.");
   }
 });
 
 onAuthStateChanged(auth, u => {
   user = u;
-  if(u){ btn.textContent = "🚪 Sair"; carregar(); }
+  if(u){ btn.textContent = "🚪 Sair"; carregar(); if(window.fecharIntro) window.fecharIntro(); }
   else{ btn.textContent = "🔐 Entrar com Google"; setStatus("☁️ Nuvem: desconectada", false); }
 });
 </script>
