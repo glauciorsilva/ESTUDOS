@@ -331,7 +331,7 @@ button{font-family:inherit;}
     <span id="progresso">Progresso: <b id="progresso-n">0/16</b></span>
     <span id="status-pyodide"><span class="spinner"></span> Carregando ambiente Python...</span>
     <span id="status-backend" title="Backend opcional (backend/app.py) para salvar seu progresso num banco SQLite real">🗄️ Banco: offline</span>
-    <span id="status-nuvem" title="Entre com Google para salvar seu progresso na nuvem (Firebase)">☁️ Nuvem: desconectada</span>
+    <span id="status-nuvem" title="Banco de dados na nuvem (Firebase/Firestore). Entre com Google para salvar seu progresso.">🗄️ Banco: faça login</span>
     <button class="btn-ghost btn-small" id="btn-login">🔐 Entrar com Google</button>
     <button class="btn-ghost btn-small" id="btn-novidades">🌐 Buscar novidades</button>
   </div>
@@ -1698,6 +1698,10 @@ let backendOnline = false;
 
 async function checarBackend(){
   const status = document.getElementById("status-backend");
+  if(!["localhost","127.0.0.1",""].includes(location.hostname)){
+    status.style.display = "none"; /* online: o banco é o Firebase (indicador ao lado) */
+    return;
+  }
   try{
     const resp = await fetch(`${API_BASE}/api/health`, {signal: AbortSignal.timeout(1500)});
     if(!resp.ok) throw new Error("health check falhou");
@@ -2184,10 +2188,10 @@ async function carregar(){
       renderSidebar();
     }
     await salvarAgora();
-    setStatus("☁️ Nuvem: " + (user.displayName || user.email), true);
+    setStatus("🗄️ Banco online: " + (user.displayName || user.email), true);
   }catch(e){
     console.error(e);
-    setStatus("☁️ Nuvem: erro (veja regras do Firestore)", false);
+    setStatus("🗄️ Banco: erro (veja regras do Firestore)", false);
   }
 }
 
@@ -2218,7 +2222,7 @@ btn.addEventListener("click", async () => {
     else{ await signInWithPopup(auth, new GoogleAuthProvider()); }
   }catch(e){
     console.error(e);
-    setStatus("☁️ Nuvem: login falhou", false);
+    setStatus("🗄️ Banco: login falhou", false);
     if(window.erroIntro) window.erroIntro("Login não concluído (" + (e.code || "erro") + "). Tente de novo ou escolha a pílula azul.");
   }
 });
@@ -2226,7 +2230,7 @@ btn.addEventListener("click", async () => {
 onAuthStateChanged(auth, u => {
   user = u;
   if(u){ btn.textContent = "🚪 Sair"; carregar(); if(window.fecharIntro) window.fecharIntro(); }
-  else{ btn.textContent = "🔐 Entrar com Google"; setStatus("☁️ Nuvem: desconectada", false); }
+  else{ btn.textContent = "🔐 Entrar com Google"; setStatus("🗄️ Banco: faça login", false); }
 });
 </script>
 </body>
