@@ -212,6 +212,17 @@ button{font-family:inherit;}
 .cm-s-matrix .cm-operator{color:#00ff41;}
 ::-webkit-scrollbar{width:9px;height:9px;} ::-webkit-scrollbar-thumb{background:#0b6b24; border-radius:6px;}
 
+
+/* ---- abas Exercícios / Apostila ---- */
+.btn-link{display:inline-block; text-decoration:none; border-radius:8px; padding:6px 11px; font-size:12px; font-weight:600;
+  background:rgba(0,255,65,.08); color:var(--accent); border:1px solid var(--accent);}
+.btn-link:hover{background:rgba(0,255,65,.2);}
+.abas{display:flex; gap:6px; position:sticky; top:-10px; z-index:2; padding:6px 0 10px; margin-top:-4px;
+  background:linear-gradient(180deg, rgba(0,14,4,.97) 75%, rgba(0,14,4,0));}
+.aba{flex:1; background:rgba(0,255,65,.06); color:var(--muted); border:1px solid var(--border); padding:8px 6px; font-size:12.5px;}
+.aba.ativa{background:var(--accent); color:#001a07; border-color:var(--accent); box-shadow:var(--glow);}
+.aba .qtd{opacity:.75; font-weight:500; margin-left:4px;}
+
 /* ======================= TELA DE ENTRADA (MORPHEU) ======================= */
 #intro{
   position:fixed; inset:0; z-index:100; display:flex; align-items:center; justify-content:center;
@@ -333,6 +344,7 @@ button{font-family:inherit;}
     <span id="status-backend" title="Backend opcional (backend/app.py) para salvar seu progresso num banco SQLite real">🗄️ Banco: offline</span>
     <span id="status-nuvem" title="Banco de dados na nuvem (Firebase/Firestore). Entre com Google para salvar seu progresso.">🗄️ Banco: faça login</span>
     <button class="btn-ghost btn-small" id="btn-login">🔐 Entrar com Google</button>
+    <a class="btn-ghost btn-small btn-link" id="btn-apostila" href="apostila/Apostila_Dados_com_Python.pdf" download>📘 Baixar apostila (PDF)</a>
     <button class="btn-ghost btn-small" id="btn-novidades">🌐 Buscar novidades</button>
   </div>
 </header>
@@ -345,6 +357,8 @@ button{font-family:inherit;}
       <p>Escolha um exercício na lista à esquerda. Cada um propõe um caso real de análise/sistema de dados
       para você programar direto aqui, com Python de verdade rodando no seu navegador
       (pandas, sqlite3, orientação a objetos e uma introdução a tkinter).</p>
+      <p>Na aba <b>📘 Apostila</b> estão os exercícios que acompanham a apostila em PDF (botão <b>Baixar apostila</b> no topo):
+      teoria e receitas com exemplos diferentes, para você praticar e relembrar.</p>
       <p>Aguarde o ambiente terminar de carregar (canto superior direito) antes de começar.</p>
     </div>
   </main>
@@ -362,6 +376,7 @@ button{font-family:inherit;}
   Progresso salvo automaticamente neste navegador. <a id="btn-reset">Apagar progresso salvo</a>
 </footer>
 
+<script src="apostila-exercicios.js"></script>
 <script>
 /* ======================= DADOS DOS EXERCÍCIOS ======================= */
 const EXERCISES = [
@@ -1679,6 +1694,9 @@ produto_campeao = relatorio_final.loc[relatorio_final["total"].idxmax(), "produt
 }
 ];
 
+/* Exercícios da apostila (aba "Apostila"), vindos de apostila-exercicios.js */
+if(typeof APOSTILA_EXERCISES !== "undefined"){ EXERCISES.push(...APOSTILA_EXERCISES); }
+
 /* ======================= ESTADO / PERSISTÊNCIA ======================= */
 const STORAGE_KEY = "praticapython_progress_v1";
 function loadState(){
@@ -1779,32 +1797,67 @@ const NIVEIS_ORDEM = ["Iniciante","Intermediário","Avançado","Profissional"];
 let currentExId = null;
 let editor = null;
 
+let abaAtual = "ex";   /* "ex" = exercícios do ambiente; "ap" = exercícios da apostila */
+
+function exerciciosDaAba(aba){
+  return EXERCISES.filter(e => aba === "ap" ? !!e.apostila : !e.apostila);
+}
+
+function criaItem(ex){
+  const item = document.createElement("div");
+  item.className = "ex-item" + (ex.id === currentExId ? " active" : "");
+  const done = state.completed.includes(ex.id);
+  item.innerHTML = `<span class="check">${done ? "✅" : "⬜"}</span>
+    <span style="flex:1;">${ex.titulo}</span>
+    <span class="badge badge-${ex.nivel}">${ex.topico}</span>`;
+  item.onclick = () => selectExercise(ex.id);
+  return item;
+}
+
+function criaGrupo(titulo, exs){
+  const group = document.createElement("div");
+  group.className = "nivel-group";
+  const header = document.createElement("div");
+  header.className = "nivel-header";
+  header.textContent = titulo;
+  group.appendChild(header);
+  exs.forEach(ex => group.appendChild(criaItem(ex)));
+  return group;
+}
+
 function renderSidebar(){
   const sidebar = document.getElementById("sidebar");
   sidebar.innerHTML = "";
-  NIVEIS_ORDEM.forEach(nivel => {
-    const exs = EXERCISES.filter(e => e.nivel === nivel);
-    if(exs.length === 0) return;
-    const group = document.createElement("div");
-    group.className = "nivel-group";
-    const header = document.createElement("div");
-    header.className = "nivel-header";
-    header.textContent = nivel;
-    group.appendChild(header);
-    exs.forEach(ex => {
-      const item = document.createElement("div");
-      item.className = "ex-item" + (ex.id === currentExId ? " active" : "");
-      const done = state.completed.includes(ex.id);
-      item.innerHTML = `<span class="check">${done ? "✅" : "⬜"}</span>
-        <span style="flex:1;">${ex.titulo}</span>
-        <span class="badge badge-${ex.nivel}">${ex.topico}</span>`;
-      item.onclick = () => selectExercise(ex.id);
-      group.appendChild(item);
+
+  const feitos = aba => exerciciosDaAba(aba).filter(e => state.completed.includes(e.id)).length;
+  const temApostila = EXERCISES.some(e => e.apostila);
+  if(temApostila){
+    const abas = document.createElement("div");
+    abas.className = "abas";
+    [["ex", "🧪 Exercícios"], ["ap", "📘 Apostila"]].forEach(([id, rotulo]) => {
+      const b = document.createElement("button");
+      b.className = "aba" + (abaAtual === id ? " ativa" : "");
+      b.innerHTML = `${rotulo}<span class="qtd">${feitos(id)}/${exerciciosDaAba(id).length}</span>`;
+      b.onclick = () => { abaAtual = id; renderSidebar(); };
+      abas.appendChild(b);
     });
-    sidebar.appendChild(group);
-  });
-  const total = EXERCISES.length;
-  document.getElementById("progresso-n").textContent = `${state.completed.length}/${total}`;
+    sidebar.appendChild(abas);
+  }
+
+  const lista = exerciciosDaAba(abaAtual);
+  if(abaAtual === "ap"){
+    const caps = [...new Set(lista.map(e => e.cap))].sort((a, b) => a - b);
+    caps.forEach(c => {
+      const nome = (typeof APOSTILA_CAPITULOS !== "undefined" && APOSTILA_CAPITULOS[c]) || "";
+      sidebar.appendChild(criaGrupo(`Cap. ${c} — ${nome}`, lista.filter(e => e.cap === c)));
+    });
+  }else{
+    NIVEIS_ORDEM.forEach(nivel => {
+      const exs = lista.filter(e => e.nivel === nivel);
+      if(exs.length) sidebar.appendChild(criaGrupo(nivel, exs));
+    });
+  }
+  document.getElementById("progresso-n").textContent = `${feitos(abaAtual)}/${lista.length}`;
 }
 
 function atualizarBotoes(){
